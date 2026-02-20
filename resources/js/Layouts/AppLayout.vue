@@ -136,13 +136,12 @@ const isActive = (name: string) => page.component.toLowerCase().startsWith(name)
                     v-for="item in mobileNavItems"
                     :key="item.name"
                     :href="item.href"
-                    class="flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-2xl transition-all duration-200"
+                    class="flex items-center justify-center px-5 py-2 rounded-2xl transition-all duration-200"
                     :class="isActive(item.name)
                         ? 'text-coin-primary bg-coin-primary/10'
                         : 'text-gray-400 dark:text-gray-500'"
                 >
-                    <component :is="item.icon" class="w-5 h-5" />
-                    <span class="text-[10px]" :class="isActive(item.name) ? 'font-bold' : 'font-medium'">{{ item.label }}</span>
+                    <component :is="item.icon" class="w-7 h-7" />
                 </Link>
             </div>
         </nav>
