@@ -1,9 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      target: app
-    image: coin-app
+    image: jfbiswajit/coin:latest
     restart: unless-stopped
     env_file: .env
     volumes:
@@ -16,7 +13,7 @@ services:
         condition: service_healthy
 
   queue:
-    image: coin-app
+    image: jfbiswajit/coin:latest
     restart: unless-stopped
     entrypoint: ["php", "artisan", "queue:listen", "--timeout=60"]
     env_file: .env
