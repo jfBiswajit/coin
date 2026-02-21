@@ -1,0 +1,15 @@
+node_modules/
+vendor/
+.env
+.env.*
+!.env.example
+storage/logs/
+public/build/
+.git/
+.gitignore
+tests/
+*.md
+docker-compose*.yml
+.editorconfig
+.phpunit.result.cache
+phpunit.xml
