@@ -1,38 +1,44 @@
 <script setup lang="ts">
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
-const ready = ref(false);
-onMounted(() => requestAnimationFrame(() => { ready.value = true; }));
+type ExpenseItem = {
+    category_id: number; name: string; color: string; icon: string;
+    budget: number | null; spent: number;
+};
+type LoanItem = {
+    category_id: number; name: string; color: string; icon: string;
+    loan_amount: number; emi_amount: number;
+    paid_this_month: number; total_paid: number; remaining: number;
+};
+type SavingItem = {
+    category_id: number; name: string; color: string; icon: string;
+    monthly_amount: number; target_amount: number | null;
+    saved_this_month: number; total_saved: number;
+};
 
 const props = defineProps<{
-    budgets: Array<{
-        category_id: number;
-        name: string;
-        color: string;
-        icon: string;
-        budget: number | null;
-        spent: number;
-    }>;
+    expenses: ExpenseItem[];
+    loans: LoanItem[];
+    savings: SavingItem[];
     month: number;
     year: number;
 }>();
 
+const ready = ref(false);
+onMounted(() => requestAnimationFrame(() => { ready.value = true; }));
+
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-const totalBudget = computed(() => props.budgets.reduce((s, b) => s + (b.budget ?? 0), 0));
-const totalSpent  = computed(() => props.budgets.reduce((s, b) => s + b.spent, 0));
-const remaining   = computed(() => totalBudget.value - totalSpent.value);
-const overallPct  = computed(() => totalBudget.value > 0 ? Math.min(100, (totalSpent.value / totalBudget.value) * 100) : 0);
+const activeSection = ref<'expense' | 'loan' | 'saving'>('expense');
 
 const prevMonth = () => {
     let m = props.month - 1, y = props.year;
     if (m < 1) { m = 12; y--; }
     router.get('/budget', { month: m, year: y });
 };
-
 const nextMonth = () => {
     let m = props.month + 1, y = props.year;
     if (m > 12) { m = 1; y++; }
@@ -41,26 +47,31 @@ const nextMonth = () => {
 
 const fmt = (v: number) => `৳${new Intl.NumberFormat('en', { minimumFractionDigits: 2 }).format(v)}`;
 
-
-const itemPct = (item: typeof props.budgets[0]) =>
+// Expense helpers
+const itemPct = (item: ExpenseItem) =>
     item.budget ? Math.min(100, (item.spent / item.budget) * 100) : 0;
+const isOver = (item: ExpenseItem) => item.budget !== null && item.spent > item.budget;
 
-const isOver = (item: typeof props.budgets[0]) =>
-    item.budget !== null && item.spent > item.budget;
+const totalBudget = computed(() => props.expenses.reduce((s, b) => s + (b.budget ?? 0), 0));
+const totalSpent = computed(() => props.expenses.reduce((s, b) => s + b.spent, 0));
+const remaining = computed(() => totalBudget.value - totalSpent.value);
 
-const search = ref('');
-const filteredBudgets = computed(() =>
-    search.value.trim()
-        ? props.budgets.filter(b => b.name.toLowerCase().includes(search.value.trim().toLowerCase()))
-        : props.budgets
-);
+// Loan helpers
+const loanPct = (item: LoanItem) =>
+    item.loan_amount > 0 ? Math.min(100, (item.total_paid / item.loan_amount) * 100) : 0;
 
-const goToTransactions = (item: typeof props.budgets[0]) => {
+// Saving helpers
+const savingPct = (item: SavingItem) =>
+    item.target_amount && item.target_amount > 0
+        ? Math.min(100, (item.total_saved / item.target_amount) * 100)
+        : 0;
+
+const goToTransactions = (categoryId: number, type: string) => {
     router.get('/transactions', {
         month: props.month,
         year: props.year,
-        type: 'expense',
-        category_id: String(item.category_id),
+        type,
+        category_id: String(categoryId),
     });
 };
 </script>
@@ -88,58 +99,73 @@ const goToTransactions = (item: typeof props.budgets[0]) => {
                 </div>
             </div>
 
-            <!-- Summary card -->
-            <div class="card space-y-4">
-                <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Total Budget</p>
-                        <p class="text-sm sm:text-lg font-bold text-gray-900 dark:text-white truncate">{{ fmt(totalBudget) }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Spent</p>
-                        <p class="text-sm sm:text-lg font-bold text-red-500 truncate">{{ fmt(totalSpent) }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Remaining</p>
-                        <p class="text-sm sm:text-lg font-bold truncate" :class="remaining < 0 ? 'text-red-500' : 'text-emerald-500'">{{ fmt(remaining) }}</p>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500 mb-1.5">
-                        <span>Overall spending</span>
-                        <span>{{ Math.round(overallPct) }}%</span>
-                    </div>
-                    <div class="h-2 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
-                        <div
-                            class="h-full rounded-full transition-all duration-700"
-                            :class="overallPct >= 100 ? 'bg-red-500' : overallPct >= 75 ? 'bg-amber-500' : 'bg-coin-primary'"
-                            :style="{ width: ready ? `${overallPct}%` : '0%' }"
-                        />
-                    </div>
-                </div>
-            </div>
-
-            <!-- Search -->
-            <div class="relative">
-                <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
-                <input
-                    v-model="search"
-                    type="text"
-                    placeholder="Search categories…"
-                    class="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl bg-white/60 dark:bg-white/[0.05] border border-white/60 dark:border-white/10 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-coin-primary/40"
-                />
-            </div>
-
-            <!-- Budget grid -->
-            <div v-if="filteredBudgets.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div
-                    v-for="item in filteredBudgets"
-                    :key="item.category_id"
-                    class="card card-hoverable flex flex-col gap-3"
-                    @click="goToTransactions(item)"
+            <!-- Section tabs -->
+            <div class="flex gap-1 p-1 bg-gray-100 dark:bg-white/5 rounded-xl w-fit">
+                <button
+                    class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+                    :class="activeSection === 'expense'
+                        ? 'bg-white dark:bg-coin-dark-card text-gray-900 dark:text-white shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                    @click="activeSection = 'expense'"
                 >
-                    <!-- Card header -->
-                    <div class="flex items-center justify-between">
+                    Expense
+                    <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
+                        :class="activeSection === 'expense' ? 'bg-coin-primary/10 text-coin-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'"
+                    >{{ expenses.length }}</span>
+                </button>
+                <button
+                    class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+                    :class="activeSection === 'loan'
+                        ? 'bg-white dark:bg-coin-dark-card text-gray-900 dark:text-white shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                    @click="activeSection = 'loan'"
+                >
+                    Loan
+                    <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
+                        :class="activeSection === 'loan' ? 'bg-coin-primary/10 text-coin-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'"
+                    >{{ loans.length }}</span>
+                </button>
+                <button
+                    class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+                    :class="activeSection === 'saving'
+                        ? 'bg-white dark:bg-coin-dark-card text-gray-900 dark:text-white shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                    @click="activeSection = 'saving'"
+                >
+                    Saving
+                    <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
+                        :class="activeSection === 'saving' ? 'bg-coin-primary/10 text-coin-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'"
+                    >{{ savings.length }}</span>
+                </button>
+            </div>
+
+            <!-- ── EXPENSE SECTION ── -->
+            <template v-if="activeSection === 'expense'">
+                <!-- Summary card -->
+                <div class="card space-y-4">
+                    <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Budget</p>
+                            <p class="text-sm sm:text-lg font-bold text-gray-900 dark:text-white truncate">{{ fmt(totalBudget) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Spent</p>
+                            <p class="text-sm sm:text-lg font-bold text-red-500 truncate">{{ fmt(totalSpent) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Remaining</p>
+                            <p class="text-sm sm:text-lg font-bold truncate" :class="remaining < 0 ? 'text-red-500' : 'text-emerald-500'">{{ fmt(remaining) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="expenses.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div
+                        v-for="item in expenses"
+                        :key="item.category_id"
+                        class="card card-hoverable flex flex-col gap-3"
+                        @click="goToTransactions(item.category_id, 'expense')"
+                    >
                         <div class="flex items-center gap-2.5">
                             <div
                                 class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
@@ -149,57 +175,216 @@ const goToTransactions = (item: typeof props.budgets[0]) => {
                             </div>
                             <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
                         </div>
-                    </div>
 
-                    <!-- Progress bar -->
-                    <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
-                        <div
-                            class="h-full rounded-full transition-all duration-500"
-                            :style="{ width: ready ? `${itemPct(item)}%` : '0%', backgroundColor: isOver(item) ? '#ef4444' : item.color }"
-                        />
-                    </div>
+                        <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
+                            <div
+                                class="h-full rounded-full transition-all duration-500"
+                                :style="{ width: ready ? `${itemPct(item)}%` : '0%', backgroundColor: isOver(item) ? '#ef4444' : item.color }"
+                            />
+                        </div>
 
-                    <!-- Amounts row -->
-                    <div class="flex items-center justify-between">
-                        <div class="text-xs">
-                            <span :class="isOver(item) ? 'text-red-500 font-semibold' : 'text-gray-600 dark:text-gray-400'">
-                                {{ fmt(item.spent) }}
-                            </span>
-                            <span v-if="item.budget !== null" class="text-gray-400 dark:text-gray-500">
-                                &nbsp;/ {{ fmt(item.budget) }}
+                        <div class="flex items-center justify-between">
+                            <div class="text-xs">
+                                <span :class="isOver(item) ? 'text-red-500 font-semibold' : 'text-gray-600 dark:text-gray-400'">
+                                    {{ fmt(item.spent) }}
+                                </span>
+                                <span v-if="item.budget !== null" class="text-gray-400 dark:text-gray-500"> / {{ fmt(item.budget) }}</span>
+                            </div>
+                            <span
+                                class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                                :class="isOver(item)
+                                    ? 'bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400'
+                                    : itemPct(item) > 75
+                                        ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                                        : 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'"
+                            >
+                                {{ Math.round(itemPct(item)) }}%
                             </span>
                         </div>
 
-                        <span
-                            v-if="item.budget !== null"
-                            class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                            :class="isOver(item)
-                                ? 'bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400'
-                                : itemPct(item) > 75
-                                    ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                                    : 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'"
-                        >
-                            {{ Math.round(itemPct(item)) }}%
-                        </span>
-                    </div>
-
-                    <!-- Available row -->
-                    <div v-if="item.budget !== null" class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-white/5">
-                        <span class="text-xs text-gray-400 dark:text-gray-500">Available</span>
-                        <span
-                            class="text-xs font-semibold"
-                            :class="isOver(item) ? 'text-red-500' : 'text-emerald-500'"
-                        >
-                            {{ fmt(item.budget - item.spent) }}
-                        </span>
+                        <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-white/5">
+                            <span class="text-xs text-gray-400 dark:text-gray-500">Available</span>
+                            <span class="text-xs font-semibold" :class="isOver(item) ? 'text-red-500' : 'text-emerald-500'">
+                                {{ fmt((item.budget ?? 0) - item.spent) }}
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
+                <div v-else class="card text-center py-12 text-sm text-gray-400 dark:text-gray-600">
+                    Add expense categories to set budgets.
+                </div>
+            </template>
 
-            <div v-else class="card text-center py-12 text-sm text-gray-400 dark:text-gray-600">
-                {{ search.trim() ? 'No categories match your search.' : 'Add expense categories to set budgets.' }}
-            </div>
+            <!-- ── LOAN SECTION ── -->
+            <template v-if="activeSection === 'loan'">
+                <!-- Loan summary -->
+                <div class="card">
+                    <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">EMI This Month</p>
+                            <p class="text-sm sm:text-lg font-bold text-gray-900 dark:text-white truncate">
+                                {{ fmt(loans.reduce((s, l) => s + l.emi_amount, 0)) }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Paid This Month</p>
+                            <p class="text-sm sm:text-lg font-bold text-emerald-500 truncate">
+                                {{ fmt(loans.reduce((s, l) => s + l.paid_this_month, 0)) }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                                {{ loans.reduce((s, l) => s + l.paid_this_month, 0) >= loans.reduce((s, l) => s + l.emi_amount, 0) ? 'Overpaid' : 'Due' }}
+                            </p>
+                            <p class="text-sm sm:text-lg font-bold truncate"
+                                :class="loans.reduce((s, l) => s + l.paid_this_month, 0) >= loans.reduce((s, l) => s + l.emi_amount, 0) ? 'text-emerald-500' : 'text-orange-500'">
+                                {{ fmt(Math.abs(loans.reduce((s, l) => s + l.emi_amount, 0) - loans.reduce((s, l) => s + l.paid_this_month, 0))) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="loans.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div
+                        v-for="item in loans"
+                        :key="item.category_id"
+                        class="card card-hoverable flex flex-col gap-3"
+                        @click="goToTransactions(item.category_id, 'loan')"
+                    >
+                        <div class="flex items-center gap-2.5">
+                            <div
+                                class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                :style="{ backgroundColor: item.color, boxShadow: `0 4px 12px ${item.color}50` }"
+                            >
+                                {{ item.name[0].toUpperCase() }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
+                            </div>
+                            <span class="text-sm font-bold text-orange-500 shrink-0">{{ fmt(item.remaining) }}</span>
+                        </div>
+
+                        <!-- Repayment progress -->
+                        <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
+                            <div
+                                class="h-full rounded-full transition-all duration-500 bg-orange-500"
+                                :style="{ width: ready ? `${loanPct(item)}%` : '0%' }"
+                            />
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-400 dark:text-gray-500">
+                                {{ fmt(item.total_paid) }} / {{ fmt(item.loan_amount) }}
+                            </span>
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400">
+                                {{ Math.round(loanPct(item)) }}% paid
+                            </span>
+                        </div>
+
+                        <div class="space-y-1.5 pt-2 border-t border-gray-100 dark:border-white/5">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-gray-400 dark:text-gray-500">EMI this month</span>
+                                <span class="font-medium text-gray-700 dark:text-gray-300">{{ fmt(item.emi_amount) }}</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-gray-400 dark:text-gray-500">Paid this month</span>
+                                <span class="font-medium" :class="item.paid_this_month >= item.emi_amount ? 'text-emerald-500' : 'text-orange-500'">
+                                    {{ fmt(item.paid_this_month) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="card text-center py-12 text-sm text-gray-400 dark:text-gray-600">
+                    Add loan categories to track repayments.
+                </div>
+            </template>
+
+            <!-- ── SAVING SECTION ── -->
+            <template v-if="activeSection === 'saving'">
+                <!-- Saving summary -->
+                <div class="card">
+                    <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Target</p>
+                            <p class="text-sm sm:text-lg font-bold text-gray-900 dark:text-white truncate">
+                                {{ fmt(savings.reduce((s, sv) => s + sv.monthly_amount, 0)) }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Saved</p>
+                            <p class="text-sm sm:text-lg font-bold text-emerald-500 truncate">
+                                {{ fmt(savings.reduce((s, sv) => s + sv.saved_this_month, 0)) }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                                {{ savings.reduce((s, sv) => s + sv.saved_this_month, 0) >= savings.reduce((s, sv) => s + sv.monthly_amount, 0) ? 'Excess' : 'Due' }}
+                            </p>
+                            <p class="text-sm sm:text-lg font-bold truncate"
+                                :class="savings.reduce((s, sv) => s + sv.saved_this_month, 0) >= savings.reduce((s, sv) => s + sv.monthly_amount, 0) ? 'text-emerald-500' : 'text-blue-500'">
+                                {{ fmt(Math.abs(savings.reduce((s, sv) => s + sv.monthly_amount, 0) - savings.reduce((s, sv) => s + sv.saved_this_month, 0))) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="savings.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div
+                        v-for="item in savings"
+                        :key="item.category_id"
+                        class="card card-hoverable flex flex-col gap-3"
+                        @click="goToTransactions(item.category_id, 'saving')"
+                    >
+                        <div class="flex items-center gap-2.5">
+                            <div
+                                class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                :style="{ backgroundColor: item.color, boxShadow: `0 4px 12px ${item.color}50` }"
+                            >
+                                {{ item.name[0].toUpperCase() }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
+                            </div>
+                            <span class="text-sm font-bold text-blue-500 shrink-0">{{ fmt(item.total_saved) }}</span>
+                        </div>
+
+                        <!-- Target progress bar (only if target set) -->
+                        <template v-if="item.target_amount">
+                            <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
+                                <div
+                                    class="h-full rounded-full transition-all duration-500 bg-blue-500"
+                                    :style="{ width: ready ? `${savingPct(item)}%` : '0%' }"
+                                />
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-400 dark:text-gray-500">
+                                    {{ fmt(item.total_saved) }} / {{ fmt(item.target_amount) }}
+                                </span>
+                                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400">
+                                    {{ Math.round(savingPct(item)) }}%
+                                </span>
+                            </div>
+                        </template>
+
+                        <div class="space-y-1.5 pt-2 border-t border-gray-100 dark:border-white/5">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-gray-400 dark:text-gray-500">Monthly target</span>
+                                <span class="font-medium text-gray-700 dark:text-gray-300">{{ fmt(item.monthly_amount) }}</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-gray-400 dark:text-gray-500">Saved this month</span>
+                                <span class="font-medium" :class="item.saved_this_month >= item.monthly_amount ? 'text-emerald-500' : 'text-blue-500'">
+                                    {{ fmt(item.saved_this_month) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="card text-center py-12 text-sm text-gray-400 dark:text-gray-600">
+                    Add saving categories to track your goals.
+                </div>
+            </template>
         </div>
-
     </AppLayout>
 </template>
