@@ -47,7 +47,6 @@ export async function syncOfflineQueue(): Promise<void> {
             await db.delete(STORE, tx.uuid);
             synced++;
         } catch {
-            // Leave in queue if request fails
         }
     }
 
@@ -62,7 +61,6 @@ export async function getPendingCount(): Promise<number> {
     return db.count(STORE);
 }
 
-// Listen for sync message from service worker
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'SYNC_TRANSACTIONS') {
@@ -74,8 +72,7 @@ if ('serviceWorker' in navigator) {
         syncOfflineQueue();
     });
 
-    // Fallback for iOS where Background Sync is unsupported
-    document.addEventListener('visibilitychange', () => {
+document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
             syncOfflineQueue();
         }

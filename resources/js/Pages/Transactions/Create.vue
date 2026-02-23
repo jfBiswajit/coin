@@ -94,7 +94,7 @@ const submit = async () => {
             </div>
 
             <form class="card space-y-4" @submit.prevent="submit">
-                <!-- Type -->
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
                     <div class="flex rounded-xl overflow-hidden border border-gray-200 dark:border-white/10">
@@ -113,7 +113,7 @@ const submit = async () => {
                     </div>
                 </div>
 
-                <!-- Amount -->
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount</label>
                     <input
@@ -128,7 +128,7 @@ const submit = async () => {
                     <p v-if="form.errors.amount" class="text-red-500 text-xs mt-1">{{ form.errors.amount }}</p>
                 </div>
 
-                <!-- Category -->
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
                     <select v-model="form.category_id" required class="input">
@@ -142,7 +142,7 @@ const submit = async () => {
                     <p v-if="form.errors.category_id" class="text-red-500 text-xs mt-1">{{ form.errors.category_id }}</p>
                 </div>
 
-                <!-- Date -->
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date</label>
                     <div class="flex gap-2 mb-2">
@@ -164,7 +164,7 @@ const submit = async () => {
                     <p class="text-xs text-gray-400 dark:text-gray-500 mt-1.5 pl-1">{{ formattedDate }}</p>
                 </div>
 
-                <!-- Title -->
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
                     <input v-model="form.title" type="text" required placeholder="What was this for?" class="input" />

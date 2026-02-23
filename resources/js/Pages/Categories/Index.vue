@@ -103,7 +103,7 @@ const cardSubtitle = (cat: Category) => {
     <Head title="Categories" />
     <AppLayout>
         <div class="space-y-5">
-            <!-- Header -->
+
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-xl font-bold text-gray-900 dark:text-white">Categories</h1>
@@ -114,7 +114,7 @@ const cardSubtitle = (cat: Category) => {
                 </button>
             </div>
 
-            <!-- Tabs -->
+
             <div class="flex gap-1 p-1 bg-gray-100 dark:bg-white/5 rounded-xl w-fit">
                 <button
                     v-for="tab in (['expense', 'income', 'saving', 'loan'] as const)"
@@ -134,7 +134,7 @@ const cardSubtitle = (cat: Category) => {
                 </button>
             </div>
 
-            <!-- Category grid -->
+
             <div v-if="listed.length" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div
                     v-for="cat in listed"
@@ -158,7 +158,7 @@ const cardSubtitle = (cat: Category) => {
                 </div>
             </div>
 
-            <!-- Empty state -->
+
             <div v-else class="flex flex-col items-center justify-center py-16 text-center">
                 <div class="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-white/5 flex items-center justify-center mb-4">
                     <Plus class="w-7 h-7 text-gray-400" />
@@ -171,10 +171,10 @@ const cardSubtitle = (cat: Category) => {
             </div>
         </div>
 
-        <!-- Add Modal -->
+
         <AppModal v-if="showAdd" title="New Category" @close="showAdd = false">
             <form class="space-y-5" @submit.prevent="saveNew">
-                <!-- Preview -->
+
                 <div class="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-white/5">
                     <div
                         class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0"
@@ -188,7 +188,7 @@ const cardSubtitle = (cat: Category) => {
                     </div>
                 </div>
 
-                <!-- Type selector -->
+
                 <div class="grid grid-cols-4 rounded-xl overflow-hidden border border-gray-200 dark:border-white/10">
                     <button type="button"
                         class="py-2 text-xs font-medium transition-all"
@@ -218,7 +218,7 @@ const cardSubtitle = (cat: Category) => {
                     <p v-if="addForm.errors.name" class="mt-1 text-xs text-red-500">{{ addForm.errors.name }}</p>
                 </div>
 
-                <!-- Expense: monthly budget -->
+
                 <div v-if="addForm.type === 'expense'">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly Budget</label>
                     <div class="relative">
@@ -228,7 +228,7 @@ const cardSubtitle = (cat: Category) => {
                     <p v-if="addForm.errors.budget_amount" class="mt-1 text-xs text-red-500">{{ addForm.errors.budget_amount }}</p>
                 </div>
 
-                <!-- Income: expected monthly amount -->
+
                 <div v-if="addForm.type === 'income'">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expected Monthly Amount</label>
                     <div class="relative">
@@ -238,7 +238,7 @@ const cardSubtitle = (cat: Category) => {
                     <p v-if="addForm.errors.monthly_amount" class="mt-1 text-xs text-red-500">{{ addForm.errors.monthly_amount }}</p>
                 </div>
 
-                <!-- Loan: total amount + EMI -->
+
                 <template v-if="addForm.type === 'loan'">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Loan Amount</label>
@@ -258,7 +258,7 @@ const cardSubtitle = (cat: Category) => {
                     </div>
                 </template>
 
-                <!-- Saving: monthly contribution + optional target -->
+
                 <template v-if="addForm.type === 'saving'">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly Contribution</label>
@@ -299,7 +299,7 @@ const cardSubtitle = (cat: Category) => {
             </form>
         </AppModal>
 
-        <!-- Edit Modal -->
+
         <AppModal v-if="editTarget" :title="`Edit ${editTarget.name}`" @close="editTarget = null">
             <form class="space-y-5" @submit.prevent="saveEdit">
                 <div class="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-white/5">
@@ -321,7 +321,7 @@ const cardSubtitle = (cat: Category) => {
                     <p v-if="editForm.errors.name" class="mt-1 text-xs text-red-500">{{ editForm.errors.name }}</p>
                 </div>
 
-                <!-- Expense: monthly budget -->
+
                 <div v-if="editTarget.type === 'expense'">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly Budget</label>
                     <div class="relative">
@@ -331,7 +331,7 @@ const cardSubtitle = (cat: Category) => {
                     <p v-if="editForm.errors.budget_amount" class="mt-1 text-xs text-red-500">{{ editForm.errors.budget_amount }}</p>
                 </div>
 
-                <!-- Income: expected monthly amount -->
+
                 <div v-if="editTarget.type === 'income'">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expected Monthly Amount</label>
                     <div class="relative">
@@ -341,7 +341,7 @@ const cardSubtitle = (cat: Category) => {
                     <p v-if="editForm.errors.monthly_amount" class="mt-1 text-xs text-red-500">{{ editForm.errors.monthly_amount }}</p>
                 </div>
 
-                <!-- Loan fields -->
+
                 <template v-if="editTarget.type === 'loan'">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Loan Amount</label>
@@ -361,7 +361,7 @@ const cardSubtitle = (cat: Category) => {
                     </div>
                 </template>
 
-                <!-- Saving fields -->
+
                 <template v-if="editTarget.type === 'saving'">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly Contribution</label>

@@ -206,7 +206,7 @@ const confirmDelete = () => {
     <Head title="Transactions" />
     <AppLayout>
         <div class="space-y-5">
-            <!-- Title row with month navigator -->
+
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-xl font-bold text-gray-900 dark:text-white">Transactions</h1>
@@ -225,7 +225,7 @@ const confirmDelete = () => {
                 </div>
             </div>
 
-            <!-- Tabs + Add button -->
+
             <div class="flex items-center justify-between gap-3">
                 <div class="flex gap-1 p-1 bg-gray-100 dark:bg-white/5 rounded-xl overflow-x-auto">
                     <button
@@ -248,7 +248,7 @@ const confirmDelete = () => {
                 </button>
             </div>
 
-            <!-- Category filter -->
+
             <SearchableSelect
                 v-model="categoryId"
                 :options="categories.filter(c => c.type === activeTab).map(c => ({ value: String(c.id), label: c.name }))"
@@ -256,7 +256,7 @@ const confirmDelete = () => {
                 placeholder="All categories"
             />
 
-            <!-- List -->
+
             <div v-if="transactions.data.length" class="space-y-4">
                 <div v-for="[date, items] in groupedTransactions" :key="date" class="space-y-2">
                     <div class="flex items-center gap-3">
@@ -296,7 +296,7 @@ const confirmDelete = () => {
                 No transactions found for this period.
             </div>
 
-            <!-- Pagination -->
+
             <div v-if="transactions.last_page > 1" class="flex justify-center gap-2 flex-wrap">
                 <button
                     v-for="link in transactions.links"
@@ -312,7 +312,7 @@ const confirmDelete = () => {
             </div>
         </div>
 
-        <!-- Add Transaction Modal -->
+
         <AppModal v-if="showAdd" title="Add Transaction" @close="showAdd = false">
             <form class="space-y-5" @submit.prevent="submit">
                 <div class="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-white/5">
@@ -326,7 +326,7 @@ const confirmDelete = () => {
                     </div>
                 </div>
 
-                <!-- Type selector -->
+
                 <div class="grid grid-cols-4 rounded-xl overflow-hidden border border-gray-200 dark:border-white/10">
                     <button type="button"
                         class="py-2 text-xs font-medium transition-all"
@@ -388,7 +388,7 @@ const confirmDelete = () => {
             </form>
         </AppModal>
 
-        <!-- Edit Transaction Modal -->
+
         <AppModal v-if="editTarget" title="Edit Transaction" @close="editTarget = null">
             <form class="space-y-5" @submit.prevent="saveEdit">
                 <div class="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-white/5">
@@ -402,7 +402,7 @@ const confirmDelete = () => {
                     </div>
                 </div>
 
-                <!-- Type selector (read-only indicator since type comes from category) -->
+
                 <div class="grid grid-cols-4 rounded-xl overflow-hidden border border-gray-200 dark:border-white/10">
                     <button type="button"
                         class="py-2 text-xs font-medium transition-all"

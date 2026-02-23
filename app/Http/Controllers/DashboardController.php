@@ -13,7 +13,6 @@ class DashboardController extends Controller
         $month = now()->month;
         $year = now()->year;
 
-        // ── ALL-TIME TOTALS BY TYPE ──────────────────────────────────────
         $allTime = $user->transactions()
             ->selectRaw('type, SUM(amount) as total')
             ->groupBy('type')
@@ -24,7 +23,6 @@ class DashboardController extends Controller
                  - (float) ($allTime['loan'] ?? 0)
                  - (float) ($allTime['saving'] ?? 0);
 
-        // ── OUTSTANDING LOAN BALANCE ─────────────────────────────────────
         $loanCategories = $user->categories()->where('type', 'loan')->get();
 
         $loanPaidTotal = $user->transactions()
@@ -37,10 +35,8 @@ class DashboardController extends Controller
             return max(0, (float) $cat->loan_amount - (float) ($loanPaidTotal[$cat->id] ?? 0));
         });
 
-        // ── TOTAL SAVED ──────────────────────────────────────────────────
         $totalSaved = (float) ($allTime['saving'] ?? 0);
 
-        // ── THIS MONTH INCOME & EXPENSE ────────────────────────────────────
         $thisMonth = $user->transactions()
             ->whereYear('transacted_at', $year)
             ->whereMonth('transacted_at', $month)
@@ -53,7 +49,6 @@ class DashboardController extends Controller
                         + (float) ($thisMonth['loan'] ?? 0)
                         + (float) ($thisMonth['saving'] ?? 0);
 
-        // ── MONEY NEEDED THIS MONTH ──────────────────────────────────────
         $expenseCategoryIds = $user->categories()->where('type', 'expense')->pluck('id');
 
         $totalBudget = (float) $user->budgets()
@@ -69,7 +64,6 @@ class DashboardController extends Controller
 
         $moneyNeeded = $totalBudget + $totalEMI + $totalSavingTarget;
 
-        // ── RECENT TRANSACTIONS ──────────────────────────────────────────
         $recent = $user->transactions()
             ->with('category')
             ->orderByDesc('transacted_at')

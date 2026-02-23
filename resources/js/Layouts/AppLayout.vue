@@ -38,9 +38,9 @@ const isActive = (name: string) => page.component.toLowerCase().startsWith(name)
 
 <template>
     <div class="bg-app min-h-screen flex dark:bg-coin-dark-bg bg-[#f0edff]">
-        <!-- Desktop Sidebar -->
+
         <aside class="hidden md:flex flex-col w-60 glass-panel fixed inset-y-0 left-0 z-30">
-            <!-- Logo -->
+
             <div class="px-6 py-5 border-b border-white/40 dark:border-white/[0.06]">
                 <div class="flex items-center gap-3">
                     <div class="relative flex-shrink-0">
@@ -56,7 +56,7 @@ const isActive = (name: string) => page.component.toLowerCase().startsWith(name)
                 </div>
             </div>
 
-            <!-- Nav -->
+
             <nav class="flex-1 px-3 py-4 space-y-0.5">
                 <Link
                     v-for="item in navItems"
@@ -72,7 +72,7 @@ const isActive = (name: string) => page.component.toLowerCase().startsWith(name)
                 </Link>
             </nav>
 
-            <!-- Footer -->
+
             <div class="px-3 py-3 border-t border-white/40 dark:border-white/[0.06]">
                 <div class="flex items-center gap-2 px-2">
                     <div class="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0">
@@ -100,9 +100,9 @@ const isActive = (name: string) => page.component.toLowerCase().startsWith(name)
             </div>
         </aside>
 
-        <!-- Main content -->
+
         <div class="flex-1 md:ml-60 min-h-screen flex flex-col relative z-10">
-            <!-- Top bar (mobile) -->
+
             <header class="md:hidden flex items-center justify-between px-4 pb-3 glass-panel sticky top-0 z-20" style="padding-top: max(env(safe-area-inset-top), 12px)">
                 <div class="flex items-center gap-2.5">
                     <div class="relative flex-shrink-0">
@@ -122,7 +122,7 @@ const isActive = (name: string) => page.component.toLowerCase().startsWith(name)
                 </button>
             </header>
 
-            <!-- Page content -->
+
             <main class="flex-1 p-4 md:p-6 pb-24 md:pb-6 transition-all duration-500"
                 :class="ready ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
                 <slot />
@@ -131,7 +131,7 @@ const isActive = (name: string) => page.component.toLowerCase().startsWith(name)
 
         <Toast />
 
-        <!-- Mobile Bottom Tab Bar -->
+
         <nav class="md:hidden fixed bottom-0 inset-x-0 glass-panel z-30 px-1 pt-1.5" style="padding-bottom: max(env(safe-area-inset-bottom), 6px)">
             <div class="flex items-center justify-around">
                 <Link

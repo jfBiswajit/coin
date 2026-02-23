@@ -20,7 +20,7 @@ const { message, type, dismiss } = useToast();
                 class="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm cursor-pointer"
                 @click="dismiss"
             >
-                <!-- Offline saved -->
+
                 <div
                     v-if="type === 'offline'"
                     class="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-amber-50 dark:bg-[#1f1a0e] border border-amber-200 dark:border-amber-500/25 shadow-xl shadow-amber-500/10 backdrop-blur-md"
@@ -34,7 +34,7 @@ const { message, type, dismiss } = useToast();
                     </div>
                 </div>
 
-                <!-- Synced -->
+
                 <div
                     v-else
                     class="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-emerald-50 dark:bg-[#0d1f14] border border-emerald-200 dark:border-emerald-500/25 shadow-xl shadow-emerald-500/10 backdrop-blur-md"

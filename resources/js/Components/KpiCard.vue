@@ -18,9 +18,9 @@ defineProps<{
             'bg-gradient-to-br from-amber-500/90 to-orange-600/90 shadow-amber-500/20 border border-white/20': variant === 'warning',
         }"
     >
-        <!-- Shine overlay -->
+
         <div class="absolute inset-0 bg-gradient-to-br from-white/15 to-transparent pointer-events-none" />
-        <!-- Decorative circles -->
+
         <div class="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/10" />
         <div class="absolute -right-2 top-8 w-16 h-16 rounded-full bg-white/[0.07]" />
 

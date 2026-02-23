@@ -65,7 +65,7 @@ watch(() => props.modelValue, () => { search.value = ''; });
 
 <template>
     <div ref="container" class="relative">
-        <!-- Trigger -->
+
         <button
             type="button"
             class="input flex items-center justify-between gap-2 text-left w-full"
@@ -85,12 +85,12 @@ watch(() => props.modelValue, () => { search.value = ''; });
             </span>
         </button>
 
-        <!-- Dropdown -->
+
         <div
             v-if="open"
             class="absolute z-50 mt-1 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-coin-dark-card shadow-xl overflow-hidden"
         >
-            <!-- Search -->
+
             <div class="p-2 border-b border-gray-100 dark:border-white/5">
                 <input
                     v-model="search"
@@ -101,9 +101,9 @@ watch(() => props.modelValue, () => { search.value = ''; });
                 />
             </div>
 
-            <!-- Options -->
+
             <ul class="max-h-52 overflow-y-auto py-1">
-                <!-- All option -->
+
                 <li
                     v-if="allLabel"
                     class="px-3 py-2 text-sm cursor-pointer transition-colors"

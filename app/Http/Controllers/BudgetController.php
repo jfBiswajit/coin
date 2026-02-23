@@ -14,7 +14,6 @@ class BudgetController extends Controller
         $month = (int) $request->get('month', now()->month);
         $year = (int) $request->get('year', now()->year);
 
-        // ── EXPENSE ───────────────────────────────────────────────────────────
         $expenseCategories = $user->categories()->where('type', 'expense')->orderBy('name')->get();
 
         $currentBudgets = $user->budgets()
@@ -40,7 +39,6 @@ class BudgetController extends Controller
             'spent' => (float) ($currentSpent[$cat->id] ?? 0),
         ]);
 
-        // ── LOAN ─────────────────────────────────────────────────────────────
         $loanCategories = $user->categories()->where('type', 'loan')->orderBy('name')->get();
 
         $loanPaidThisMonth = $user->transactions()
@@ -69,7 +67,6 @@ class BudgetController extends Controller
             'remaining' => max(0, (float) $cat->loan_amount - (float) ($loanPaidTotal[$cat->id] ?? 0)),
         ]);
 
-        // ── SAVING ───────────────────────────────────────────────────────────
         $savingCategories = $user->categories()->where('type', 'saving')->orderBy('name')->get();
 
         $savedThisMonth = $user->transactions()

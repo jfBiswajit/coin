@@ -47,7 +47,6 @@ const nextMonth = () => {
 
 const fmt = (v: number) => `৳${new Intl.NumberFormat('en', { minimumFractionDigits: 2 }).format(v)}`;
 
-// Expense helpers
 const itemPct = (item: ExpenseItem) =>
     item.budget ? Math.min(100, (item.spent / item.budget) * 100) : 0;
 const isOver = (item: ExpenseItem) => item.budget !== null && item.spent > item.budget;
@@ -56,11 +55,9 @@ const totalBudget = computed(() => props.expenses.reduce((s, b) => s + (b.budget
 const totalSpent = computed(() => props.expenses.reduce((s, b) => s + b.spent, 0));
 const remaining = computed(() => totalBudget.value - totalSpent.value);
 
-// Loan helpers
 const loanPct = (item: LoanItem) =>
     item.loan_amount > 0 ? Math.min(100, (item.total_paid / item.loan_amount) * 100) : 0;
 
-// Saving helpers
 const savingPct = (item: SavingItem) =>
     item.target_amount && item.target_amount > 0
         ? Math.min(100, (item.total_saved / item.target_amount) * 100)
@@ -80,7 +77,7 @@ const goToTransactions = (categoryId: number, type: string) => {
     <Head title="Budget" />
     <AppLayout>
         <div class="space-y-6">
-            <!-- Header -->
+
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-xl font-bold text-gray-900 dark:text-white">Budget</h1>
@@ -99,7 +96,7 @@ const goToTransactions = (categoryId: number, type: string) => {
                 </div>
             </div>
 
-            <!-- Section tabs -->
+
             <div class="flex gap-1 p-1 bg-gray-100 dark:bg-white/5 rounded-xl w-fit">
                 <button
                     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
@@ -139,9 +136,9 @@ const goToTransactions = (categoryId: number, type: string) => {
                 </button>
             </div>
 
-            <!-- ── EXPENSE SECTION ── -->
+
             <template v-if="activeSection === 'expense'">
-                <!-- Summary card -->
+
                 <div class="card space-y-4">
                     <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
                         <div>
@@ -215,9 +212,9 @@ const goToTransactions = (categoryId: number, type: string) => {
                 </div>
             </template>
 
-            <!-- ── LOAN SECTION ── -->
+
             <template v-if="activeSection === 'loan'">
-                <!-- Loan summary -->
+
                 <div class="card">
                     <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
                         <div>
@@ -264,7 +261,7 @@ const goToTransactions = (categoryId: number, type: string) => {
                             <span class="text-sm font-bold text-orange-500 shrink-0">{{ fmt(item.remaining) }}</span>
                         </div>
 
-                        <!-- Repayment progress -->
+
                         <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
                             <div
                                 class="h-full rounded-full transition-all duration-500 bg-orange-500"
@@ -300,9 +297,9 @@ const goToTransactions = (categoryId: number, type: string) => {
                 </div>
             </template>
 
-            <!-- ── SAVING SECTION ── -->
+
             <template v-if="activeSection === 'saving'">
-                <!-- Saving summary -->
+
                 <div class="card">
                     <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
                         <div>
@@ -349,7 +346,7 @@ const goToTransactions = (categoryId: number, type: string) => {
                             <span class="text-sm font-bold text-blue-500 shrink-0">{{ fmt(item.total_saved) }}</span>
                         </div>
 
-                        <!-- Target progress bar (only if target set) -->
+
                         <template v-if="item.target_amount">
                             <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
                                 <div

@@ -73,7 +73,7 @@ const formatDate = (dt: string) => {
     <AppLayout>
         <div class="space-y-4">
 
-            <!-- ── 1. HERO BALANCE CARD ─────────────────────────────────── -->
+
             <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 to-purple-700 p-6 sm:p-8">
                 <p class="text-[11px] font-semibold uppercase tracking-widest text-white/60 mb-2">Current Balance</p>
                 <p class="text-4xl sm:text-5xl font-black text-white tracking-tight">
@@ -84,7 +84,7 @@ const formatDate = (dt: string) => {
                 </span>
             </div>
 
-            <!-- ── 2. THREE STAT CARDS ──────────────────────────────────── -->
+
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
                 <div class="card !p-5 border-l-[3px] border-l-orange-500">
@@ -115,15 +115,15 @@ const formatDate = (dt: string) => {
                 </div>
             </div>
 
-            <!-- ── 3. INCOME + RECENT TRANSACTIONS ──────────────────────── -->
+
             <div class="grid lg:grid-cols-5 gap-4">
 
-                <!-- Income vs Expense -->
+
                 <div class="card space-y-4 lg:col-span-3">
                     <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Income vs Expense · {{ monthLabel }}</p>
 
                     <div class="flex items-center gap-6">
-                        <!-- SVG Ring -->
+
                         <div class="relative shrink-0">
                             <svg width="120" height="120" viewBox="0 0 120 120" class="-rotate-90">
                                 <circle cx="60" cy="60" r="54" fill="none" stroke-width="8"
@@ -145,7 +145,7 @@ const formatDate = (dt: string) => {
                                 <p class="text-3xl font-black" :class="spentPct <= 60 ? 'text-emerald-600 dark:text-emerald-400' : spentPct <= 85 ? 'text-amber-500' : 'text-red-500'">{{ fmt(spentThisMonth) }}</p>
                                 <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">spent of {{ fmt(incomeThisMonth) }} earned</p>
                             </div>
-                            <!-- Progress bar -->
+
                             <div class="h-2.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
                                 <div class="h-full rounded-full transition-all duration-700 ease-out"
                                     :class="spentPct <= 60 ? 'bg-emerald-500' : spentPct <= 85 ? 'bg-amber-400' : 'bg-red-400'"
@@ -160,7 +160,7 @@ const formatDate = (dt: string) => {
                     </div>
                 </div>
 
-                <!-- Recent Transactions -->
+
                 <div class="card lg:col-span-2">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="font-semibold text-gray-900 dark:text-white">Recent</h2>
