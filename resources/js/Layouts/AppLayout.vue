@@ -28,7 +28,7 @@ const navItems = [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, name: 'dashboard', mobileHidden: false },
     { label: 'Transactions', href: '/transactions', icon: CircleDollarSign, name: 'transactions', mobileHidden: false },
     { label: 'Budget', href: '/budget', icon: PiggyBank, name: 'budget', mobileHidden: false },
-    { label: 'Categories', href: '/categories', icon: Tag, name: 'categories', mobileHidden: true },
+    { label: 'Categories', href: '/categories', icon: Tag, name: 'categories', mobileHidden: false },
 ];
 
 const mobileNavItems = navItems.filter(item => !item.mobileHidden);
