@@ -45,12 +45,10 @@ const isActive = (name: string) => page.component.toLowerCase().startsWith(name)
                 <div class="flex items-center gap-3">
                     <div class="relative flex-shrink-0">
                         <div class="absolute inset-0 rounded-2xl bg-violet-500/40 blur-md"></div>
-                        <div class="relative w-9 h-9 rounded-2xl bg-gradient-to-br from-violet-500 via-violet-600 to-purple-700 flex items-center justify-center shadow-lg shadow-violet-500/50">
-                            <span class="text-white font-black text-base leading-none">₵</span>
-                        </div>
+                        <img src="/favicon.svg" alt="Coin" class="w-9 h-9" />
                     </div>
                     <div class="flex flex-col leading-none">
-                        <span class="font-black text-lg bg-gradient-to-r from-violet-600 to-purple-500 dark:from-violet-400 dark:to-purple-300 bg-clip-text text-transparent tracking-tight">Coin</span>
+                        <span class="text-lg font-extrabold tracking-widest text-amber-500 dark:text-amber-400">COIN</span>
                         <span class="text-[10px] font-medium text-gray-400 dark:text-gray-500 tracking-wider uppercase mt-0.5">Personal Finance</span>
                     </div>
                 </div>
@@ -106,12 +104,9 @@ const isActive = (name: string) => page.component.toLowerCase().startsWith(name)
             <header class="md:hidden flex items-center justify-between px-4 pb-3 glass-panel sticky top-0 z-20" style="padding-top: max(env(safe-area-inset-top), 12px)">
                 <div class="flex items-center gap-2.5">
                     <div class="relative flex-shrink-0">
-                        <div class="absolute inset-0 rounded-xl bg-violet-500/40 blur-sm"></div>
-                        <div class="relative w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 via-violet-600 to-purple-700 flex items-center justify-center shadow-md shadow-violet-500/40">
-                            <span class="text-white font-black text-sm leading-none">₵</span>
-                        </div>
+                        <img src="/favicon.svg" alt="Coin" class="w-8 h-8" />
                     </div>
-                    <span class="font-black text-base bg-gradient-to-r from-violet-600 to-purple-500 dark:from-violet-400 dark:to-purple-300 bg-clip-text text-transparent tracking-tight">Coin</span>
+                    <span class="text-base font-extrabold tracking-widest text-amber-500 dark:text-amber-400">COIN</span>
                 </div>
                 <button
                     class="p-2 rounded-xl text-gray-500 hover:bg-white/60 dark:hover:bg-white/10 backdrop-blur-sm transition-all"
