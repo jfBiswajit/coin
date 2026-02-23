@@ -153,10 +153,7 @@ const cardSubtitle = (cat: Category) => {
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="font-semibold text-gray-900 dark:text-white truncate">{{ cat.name }}</div>
-                        <div class="flex items-center gap-1.5 mt-0.5">
-                            <div class="w-1.5 h-1.5 rounded-full" :style="{ backgroundColor: cat.color }" />
-                            <span class="text-xs text-gray-400 dark:text-gray-500">{{ cardSubtitle(cat) }}</span>
-                        </div>
+                        <div class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ cardSubtitle(cat) }}</div>
                     </div>
                 </div>
             </div>

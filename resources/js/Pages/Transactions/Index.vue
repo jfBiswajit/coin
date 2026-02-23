@@ -281,10 +281,7 @@ const confirmDelete = () => {
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="font-semibold text-gray-900 dark:text-white truncate">{{ t.title }}</div>
-                                <div class="flex items-center gap-1.5 mt-0.5">
-                                    <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" :style="{ backgroundColor: t.category.color }" />
-                                    <span class="text-xs text-gray-400 dark:text-gray-500 truncate">{{ t.category.name }} · {{ formatTransactedAt(t.transacted_at) }}</span>
-                                </div>
+                                <div class="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{{ t.category.name }} · {{ formatTransactedAt(t.transacted_at) }}</div>
                             </div>
                             <div class="font-semibold text-sm flex-shrink-0" :class="amountColor(t.type)">
                                 {{ amountPrefix(t.type) }}৳{{ new Intl.NumberFormat('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(t.amount) }}
