@@ -52,13 +52,6 @@ const txColor: Record<TxType, string> = {
     saving: 'text-blue-500',
 };
 
-const txDot: Record<TxType, string> = {
-    income: 'bg-emerald-500',
-    expense: 'bg-red-500',
-    loan: 'bg-orange-500',
-    saving: 'bg-blue-500',
-};
-
 const formatDate = (dt: string) => {
     const d = new Date(dt), today = new Date(), yest = new Date();
     yest.setDate(today.getDate() - 1);
@@ -176,14 +169,13 @@ const formatDate = (dt: string) => {
                                 {{ t.category.name[0].toUpperCase() }}
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ t.title }}</p>
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ t.title }}</p>
+                                    <span class="text-sm font-bold shrink-0" :class="txColor[t.type]">
+                                        {{ t.type === 'income' ? '+' : '−' }}{{ fmt(t.amount) }}
+                                    </span>
+                                </div>
                                 <p class="text-[11px] text-gray-400 dark:text-gray-500">{{ t.category.name }} · {{ formatDate(t.transacted_at) }}</p>
-                            </div>
-                            <div class="flex items-center gap-1.5 shrink-0">
-                                <span class="w-1.5 h-1.5 rounded-full" :class="txDot[t.type]" />
-                                <span class="text-sm font-bold" :class="txColor[t.type]">
-                                    {{ t.type === 'income' ? '+' : '−' }}{{ fmt(t.amount) }}
-                                </span>
                             </div>
                         </div>
                     </div>
