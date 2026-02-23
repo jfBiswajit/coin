@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { ArrowRight } from 'lucide-vue-next';
+import { ArrowRight, Landmark, PiggyBank, Wallet } from 'lucide-vue-next';
 import { onMounted, ref, computed } from 'vue';
 
 type TxType = 'income' | 'expense' | 'loan' | 'saving';
@@ -80,17 +80,17 @@ const formatDate = (dt: string) => {
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-                <div class="card !p-5 border-l-[3px] border-l-orange-500">
-                    <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Loan Outstanding</p>
-                    <p class="text-2xl font-black tracking-tight text-orange-500">{{ fmt(loanOutstanding) }}</p>
-                    <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
-                        <template v-if="loanToBalanceRatio !== null">{{ loanToBalanceRatio }}x your balance</template>
-                        <template v-else>&nbsp;</template>
+                <div class="card !p-5 border-l-[3px] border-l-violet-500">
+                    <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><Wallet class="w-3.5 h-3.5" />Money Needed</p>
+                    <p class="text-2xl font-black tracking-tight text-gray-900 dark:text-white">{{ fmt(moneyNeeded) }}</p>
+                    <p class="text-[11px] mt-1" :class="shortfall <= 0 ? 'text-emerald-500' : 'text-amber-500'">
+                        <template v-if="shortfall <= 0">Fully covered</template>
+                        <template v-else>{{ fmt(shortfall) }} shortfall</template>
                     </p>
                 </div>
 
                 <div class="card !p-5 border-l-[3px] border-l-blue-500">
-                    <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Total Saved</p>
+                    <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><PiggyBank class="w-3.5 h-3.5" />Total Saved</p>
                     <p class="text-2xl font-black tracking-tight text-blue-500">{{ fmt(totalSaved) }}</p>
                     <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
                         <template v-if="savingsLoanCoverage !== null">{{ savingsLoanCoverage }}% of loan covered</template>
@@ -98,12 +98,12 @@ const formatDate = (dt: string) => {
                     </p>
                 </div>
 
-                <div class="card !p-5 border-l-[3px] border-l-violet-500">
-                    <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Money Needed</p>
-                    <p class="text-2xl font-black tracking-tight text-gray-900 dark:text-white">{{ fmt(moneyNeeded) }}</p>
-                    <p class="text-[11px] mt-1" :class="shortfall <= 0 ? 'text-emerald-500' : 'text-amber-500'">
-                        <template v-if="shortfall <= 0">Fully covered</template>
-                        <template v-else>{{ fmt(shortfall) }} shortfall</template>
+                <div class="card !p-5 border-l-[3px] border-l-orange-500">
+                    <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><Landmark class="w-3.5 h-3.5" />Loan Outstanding</p>
+                    <p class="text-2xl font-black tracking-tight text-orange-500">{{ fmt(loanOutstanding) }}</p>
+                    <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
+                        <template v-if="loanToBalanceRatio !== null">{{ loanToBalanceRatio }}x your balance</template>
+                        <template v-else>No loans</template>
                     </p>
                 </div>
             </div>
