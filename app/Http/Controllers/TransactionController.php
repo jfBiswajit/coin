@@ -32,11 +32,11 @@ class TransactionController extends Controller
             'amount' => (float) $t->amount,
             'type' => $t->type,
             'title' => $t->title,
-            'transacted_at' => $t->transacted_at->format('Y-m-d\TH:i'),
+            'transacted_at' => $t->transacted_at->format('Y-m-d'),
             'category' => ['id' => $t->category->id, 'name' => $t->category->name, 'color' => $t->category->color, 'icon' => $t->category->icon],
         ]);
 
-        $categories = $user->categories()->orderBy('name')->get(['id', 'name', 'type', 'color', 'icon']);
+        $categories = $this->activeCategories($user);
 
         $baseQuery = $user->transactions()
             ->whereYear('transacted_at', $year)
@@ -50,13 +50,18 @@ class TransactionController extends Controller
             'transactions' => $transactions,
             'categories' => $categories,
             'filters' => ['month' => $month, 'year' => $year, 'type' => $request->type, 'category_id' => $request->category_id],
-            'typeCounts' => ['expense' => $typeCounts->get('expense', 0), 'income' => $typeCounts->get('income', 0)],
+            'typeCounts' => [
+                'expense' => $typeCounts->get('expense', 0),
+                'income' => $typeCounts->get('income', 0),
+                'saving' => $typeCounts->get('saving', 0),
+                'loan' => $typeCounts->get('loan', 0),
+            ],
         ]);
     }
 
     public function create(Request $request)
     {
-        $categories = $request->user()->categories()->orderBy('type')->orderBy('name')->get(['id', 'name', 'type', 'color', 'icon']);
+        $categories = $this->activeCategories($request->user());
 
         return Inertia::render('Transactions/Create', ['categories' => $categories]);
     }
@@ -67,10 +72,11 @@ class TransactionController extends Controller
             'uuid' => 'nullable|uuid',
             'category_id' => 'required|exists:categories,id',
             'amount' => 'required|numeric|min:0.01',
-            'type' => 'required|in:income,expense',
             'title' => 'required|string|max:255',
             'transacted_at' => 'required|date',
         ]);
+
+        $category = $request->user()->categories()->findOrFail($data['category_id']);
 
         $uuid = $data['uuid'] ?? Str::uuid()->toString();
 
@@ -79,7 +85,14 @@ class TransactionController extends Controller
             return back()->with('success', 'Transaction already recorded.');
         }
 
-        $request->user()->transactions()->create(array_merge($data, ['uuid' => $uuid]));
+        $request->user()->transactions()->create([
+            'uuid' => $uuid,
+            'category_id' => $data['category_id'],
+            'amount' => $data['amount'],
+            'type' => $category->type,
+            'title' => $data['title'],
+            'transacted_at' => $data['transacted_at'],
+        ]);
 
         return redirect()->route('transactions.index')->with('success', 'Transaction added.');
     }
@@ -91,12 +104,19 @@ class TransactionController extends Controller
         $data = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'amount' => 'required|numeric|min:0.01',
-            'type' => 'required|in:income,expense',
             'title' => 'required|string|max:255',
             'transacted_at' => 'required|date',
         ]);
 
-        $transaction->update($data);
+        $category = $request->user()->categories()->findOrFail($data['category_id']);
+
+        $transaction->update([
+            'category_id' => $data['category_id'],
+            'amount' => $data['amount'],
+            'type' => $category->type,
+            'title' => $data['title'],
+            'transacted_at' => $data['transacted_at'],
+        ]);
 
         return back();
     }
@@ -107,5 +127,39 @@ class TransactionController extends Controller
         $transaction->delete();
 
         return back();
+    }
+
+    private function activeCategories($user)
+    {
+        $categories = $user->categories()->orderBy('type')->orderBy('name')->get();
+
+        $loanPaid = $user->transactions()
+            ->where('type', 'loan')
+            ->selectRaw('category_id, SUM(amount) as total')
+            ->groupBy('category_id')
+            ->pluck('total', 'category_id');
+
+        $savingTotals = $user->transactions()
+            ->where('type', 'saving')
+            ->selectRaw('category_id, SUM(amount) as total')
+            ->groupBy('category_id')
+            ->pluck('total', 'category_id');
+
+        return $categories->filter(function ($cat) use ($loanPaid, $savingTotals) {
+            if ($cat->type === 'loan') {
+                $remaining = (float) $cat->loan_amount - (float) ($loanPaid[$cat->id] ?? 0);
+                return $remaining > 0;
+            }
+            if ($cat->type === 'saving' && $cat->target_amount !== null) {
+                return (float) ($savingTotals[$cat->id] ?? 0) < (float) $cat->target_amount;
+            }
+            return true;
+        })->map(fn($c) => [
+            'id' => $c->id,
+            'name' => $c->name,
+            'type' => $c->type,
+            'color' => $c->color,
+            'icon' => $c->icon,
+        ])->values();
     }
 }

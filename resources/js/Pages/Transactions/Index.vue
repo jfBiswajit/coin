@@ -2,7 +2,6 @@
 import AppModal from '@/Components/AppModal.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import DateTimePicker from '@/Components/DateTimePicker.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { ref, watch, computed, onMounted } from 'vue';
@@ -20,8 +19,10 @@ const generateUUID = (): string => {
 import { queueOfflineTransaction, syncOfflineQueue } from '@/offline';
 import { useToast } from '@/composables/useToast';
 
+type TxType = 'expense' | 'income' | 'saving' | 'loan';
+
 type Transaction = {
-    id: number; amount: number; type: string; title: string; transacted_at: string;
+    id: number; amount: number; type: TxType; title: string; transacted_at: string;
     category: { id: number; name: string; color: string; icon: string };
 };
 
@@ -32,11 +33,10 @@ const props = defineProps<{
         current_page: number;
         last_page: number;
     };
-    categories: Array<{ id: number; name: string; type: string; color: string }>;
+    categories: Array<{ id: number; name: string; type: TxType; color: string }>;
     filters: { month: number; year: number; type?: string; category_id?: string };
-    typeCounts: { expense: number; income: number };
+    typeCounts: { expense: number; income: number; saving: number; loan: number };
 }>();
-
 
 const monthYear = ref(`${props.filters.year}-${String(props.filters.month).padStart(2, '0')}`);
 
@@ -51,7 +51,8 @@ const shiftMonth = (delta: number) => {
     const d = new Date(year, month - 1 + delta, 1);
     monthYear.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
-const activeTab = ref<'expense' | 'income'>((props.filters.type as 'expense' | 'income') ?? 'expense');
+
+const activeTab = ref<TxType>((props.filters.type as TxType) ?? 'expense');
 const categoryId = ref(props.filters.category_id ?? '');
 
 const applyFilters = () => {
@@ -77,25 +78,21 @@ onMounted(() => {
     window.addEventListener('offline', () => { isOffline.value = true; });
 });
 
-const nowDatetimeLocal = () => {
-    const d = new Date();
-    d.setSeconds(0, 0);
-    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-};
+const todayDate = () => new Date().toISOString().slice(0, 10);
 
 const form = useForm({
     uuid: generateUUID(),
     category_id: '',
     amount: '',
-    type: 'expense' as 'income' | 'expense',
-    transacted_at: nowDatetimeLocal(),
+    type: 'expense' as TxType,
+    transacted_at: todayDate(),
     title: '',
 });
 
 const editForm = useForm({
     category_id: '',
     amount: '' as string | number,
-    type: 'expense' as 'income' | 'expense',
+    type: 'expense' as TxType,
     transacted_at: '',
     title: '',
 });
@@ -111,16 +108,15 @@ const groupedTransactions = computed(() => {
 });
 
 const formatTransactedAt = (dt: string) => {
-    const d = new Date(dt);
+    const d = new Date(dt + 'T00:00:00');
     const today = new Date();
     const yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
     const isSameDay = (a: Date, b: Date) =>
         a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-    const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    if (isSameDay(d, today)) return `Today, ${time}`;
-    if (isSameDay(d, yesterday)) return `Yesterday, ${time}`;
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + `, ${time}`;
+    if (isSameDay(d, today)) return 'Today';
+    if (isSameDay(d, yesterday)) return 'Yesterday';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
 const formatDateHeader = (dateStr: string) => {
@@ -135,12 +131,28 @@ const formatDateHeader = (dateStr: string) => {
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 };
 
+const amountColor = (type: TxType) => {
+    if (type === 'income') return 'text-emerald-600 dark:text-emerald-400';
+    if (type === 'saving') return 'text-blue-600 dark:text-blue-400';
+    if (type === 'loan') return 'text-orange-500 dark:text-orange-400';
+    return 'text-red-500 dark:text-red-400';
+};
+
+const amountPrefix = (type: TxType) => type === 'income' ? '+' : '-';
+
+const tabConfig: Record<TxType, { label: string }> = {
+    expense: { label: 'Expense' },
+    income: { label: 'Income' },
+    saving: { label: 'Saving' },
+    loan: { label: 'Loan' },
+};
+
 const openAdd = () => {
     form.uuid = generateUUID();
     form.category_id = '';
     form.amount = '';
     form.type = activeTab.value;
-    form.transacted_at = nowDatetimeLocal();
+    form.transacted_at = todayDate();
     form.title = '';
     form.clearErrors();
     showAdd.value = true;
@@ -150,7 +162,7 @@ const openEdit = (t: Transaction) => {
     editTarget.value = t;
     editForm.category_id = String(t.category.id);
     editForm.amount = t.amount;
-    editForm.type = t.type as 'income' | 'expense';
+    editForm.type = t.type;
     editForm.transacted_at = t.transacted_at;
     editForm.title = t.title;
     confirmingDelete.value = false;
@@ -215,20 +227,20 @@ const confirmDelete = () => {
 
             <!-- Tabs + Add button -->
             <div class="flex items-center justify-between gap-3">
-                <div class="flex gap-1 p-1 bg-gray-100 dark:bg-white/5 rounded-xl">
+                <div class="flex gap-1 p-1 bg-gray-100 dark:bg-white/5 rounded-xl overflow-x-auto">
                     <button
-                        v-for="tab in (['expense', 'income'] as const)"
+                        v-for="(cfg, tab) in tabConfig"
                         :key="tab"
-                        class="px-5 py-1.5 rounded-lg text-sm font-medium transition-all capitalize"
+                        class="px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap"
                         :class="activeTab === tab
                             ? 'bg-white dark:bg-coin-dark-card text-gray-900 dark:text-white shadow-sm'
                             : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
-                        @click="activeTab = tab; categoryId = ''"
+                        @click="activeTab = (tab as TxType); categoryId = ''"
                     >
-                        {{ tab }}
-                        <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
+                        {{ cfg.label }}
+                        <span class="ml-1 text-xs px-1.5 py-0.5 rounded-full"
                             :class="activeTab === tab ? 'bg-coin-primary/10 text-coin-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'"
-                        >{{ typeCounts[tab] }}</span>
+                        >{{ typeCounts[tab as TxType] }}</span>
                     </button>
                 </div>
                 <button class="btn-primary text-sm flex items-center gap-1.5 flex-shrink-0" @click="openAdd">
@@ -267,19 +279,14 @@ const confirmDelete = () => {
                                 {{ t.category.name[0].toUpperCase() }}
                             </div>
                             <div class="flex-1 min-w-0">
-                                <div class="font-semibold text-gray-900 dark:text-white truncate">
-                                    {{ t.title }}
-                                </div>
+                                <div class="font-semibold text-gray-900 dark:text-white truncate">{{ t.title }}</div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
                                     <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" :style="{ backgroundColor: t.category.color }" />
                                     <span class="text-xs text-gray-400 dark:text-gray-500 truncate">{{ t.category.name }} · {{ formatTransactedAt(t.transacted_at) }}</span>
                                 </div>
                             </div>
-                            <div
-                                class="font-semibold text-sm flex-shrink-0"
-                                :class="t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'"
-                            >
-                                {{ t.type === 'income' ? '+' : '-' }}৳{{ new Intl.NumberFormat('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(t.amount) }}
+                            <div class="font-semibold text-sm flex-shrink-0" :class="amountColor(t.type)">
+                                {{ amountPrefix(t.type) }}৳{{ new Intl.NumberFormat('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(t.amount) }}
                             </div>
                         </div>
                     </div>
@@ -319,19 +326,28 @@ const confirmDelete = () => {
                     </div>
                 </div>
 
-                <div class="flex rounded-xl overflow-hidden border border-gray-200 dark:border-white/10">
-                    <button
-                        type="button"
-                        class="flex-1 py-2 text-sm font-medium transition-all"
+                <!-- Type selector -->
+                <div class="grid grid-cols-4 rounded-xl overflow-hidden border border-gray-200 dark:border-white/10">
+                    <button type="button"
+                        class="py-2 text-xs font-medium transition-all"
                         :class="form.type === 'expense' ? 'bg-red-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
                         @click="form.type = 'expense'; form.category_id = ''"
                     >Expense</button>
-                    <button
-                        type="button"
-                        class="flex-1 py-2 text-sm font-medium transition-all"
+                    <button type="button"
+                        class="py-2 text-xs font-medium transition-all"
                         :class="form.type === 'income' ? 'bg-emerald-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
                         @click="form.type = 'income'; form.category_id = ''"
                     >Income</button>
+                    <button type="button"
+                        class="py-2 text-xs font-medium transition-all"
+                        :class="form.type === 'saving' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
+                        @click="form.type = 'saving'; form.category_id = ''"
+                    >Saving</button>
+                    <button type="button"
+                        class="py-2 text-xs font-medium transition-all"
+                        :class="form.type === 'loan' ? 'bg-orange-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
+                        @click="form.type = 'loan'; form.category_id = ''"
+                    >Loan</button>
                 </div>
 
                 <div>
@@ -361,8 +377,8 @@ const confirmDelete = () => {
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date & Time</label>
-                    <DateTimePicker v-model="form.transacted_at" />
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date</label>
+                    <input v-model="form.transacted_at" type="date" class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-gray-900 dark:text-white" />
                     <p v-if="form.errors.transacted_at" class="mt-1 text-xs text-red-500">{{ form.errors.transacted_at }}</p>
                 </div>
 
@@ -386,19 +402,28 @@ const confirmDelete = () => {
                     </div>
                 </div>
 
-                <div class="flex rounded-xl overflow-hidden border border-gray-200 dark:border-white/10">
-                    <button
-                        type="button"
-                        class="flex-1 py-2 text-sm font-medium transition-all"
+                <!-- Type selector (read-only indicator since type comes from category) -->
+                <div class="grid grid-cols-4 rounded-xl overflow-hidden border border-gray-200 dark:border-white/10">
+                    <button type="button"
+                        class="py-2 text-xs font-medium transition-all"
                         :class="editForm.type === 'expense' ? 'bg-red-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
                         @click="editForm.type = 'expense'; editForm.category_id = ''"
                     >Expense</button>
-                    <button
-                        type="button"
-                        class="flex-1 py-2 text-sm font-medium transition-all"
+                    <button type="button"
+                        class="py-2 text-xs font-medium transition-all"
                         :class="editForm.type === 'income' ? 'bg-emerald-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
                         @click="editForm.type = 'income'; editForm.category_id = ''"
                     >Income</button>
+                    <button type="button"
+                        class="py-2 text-xs font-medium transition-all"
+                        :class="editForm.type === 'saving' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
+                        @click="editForm.type = 'saving'; editForm.category_id = ''"
+                    >Saving</button>
+                    <button type="button"
+                        class="py-2 text-xs font-medium transition-all"
+                        :class="editForm.type === 'loan' ? 'bg-orange-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
+                        @click="editForm.type = 'loan'; editForm.category_id = ''"
+                    >Loan</button>
                 </div>
 
                 <div>
@@ -428,8 +453,8 @@ const confirmDelete = () => {
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date & Time</label>
-                    <DateTimePicker v-model="editForm.transacted_at" />
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date</label>
+                    <input v-model="editForm.transacted_at" type="date" class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-gray-900 dark:text-white" />
                     <p v-if="editForm.errors.transacted_at" class="mt-1 text-xs text-red-500">{{ editForm.errors.transacted_at }}</p>
                 </div>
 
