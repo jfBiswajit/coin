@@ -13,6 +13,10 @@ type LoanItem = {
     loan_amount: number; emi_amount: number;
     paid_this_month: number; total_paid: number; remaining: number;
 };
+type IncomeItem = {
+    category_id: number; name: string; color: string; icon: string;
+    earned_this_month: number;
+};
 type SavingItem = {
     category_id: number; name: string; color: string; icon: string;
     monthly_amount: number; target_amount: number | null;
@@ -23,6 +27,7 @@ const props = defineProps<{
     expenses: ExpenseItem[];
     loans: LoanItem[];
     savings: SavingItem[];
+    incomes: IncomeItem[];
     month: number;
     year: number;
 }>();
@@ -32,7 +37,7 @@ onMounted(() => requestAnimationFrame(() => { ready.value = true; }));
 
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-const activeSection = ref<'expense' | 'loan' | 'saving'>('expense');
+const activeSection = ref<'expense' | 'loan' | 'saving' | 'income'>('expense');
 
 const prevMonth = () => {
     let m = props.month - 1, y = props.year;
@@ -62,6 +67,10 @@ const savingPct = (item: SavingItem) =>
     item.target_amount && item.target_amount > 0
         ? Math.min(100, (item.total_saved / item.target_amount) * 100)
         : 0;
+
+const totalIncome = computed(() => props.incomes.reduce((s, i) => s + i.earned_this_month, 0));
+const incomePct = (item: IncomeItem) =>
+    totalIncome.value > 0 ? Math.round((item.earned_this_month / totalIncome.value) * 100) : 0;
 
 const goToTransactions = (categoryId: number, type: string) => {
     router.get('/transactions', {
@@ -112,15 +121,15 @@ const goToTransactions = (categoryId: number, type: string) => {
                 </button>
                 <button
                     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
-                    :class="activeSection === 'loan'
+                    :class="activeSection === 'income'
                         ? 'bg-white dark:bg-coin-dark-card text-gray-900 dark:text-white shadow-sm'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
-                    @click="activeSection = 'loan'"
+                    @click="activeSection = 'income'"
                 >
-                    Loan
+                    Income
                     <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
-                        :class="activeSection === 'loan' ? 'bg-coin-primary/10 text-coin-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'"
-                    >{{ loans.length }}</span>
+                        :class="activeSection === 'income' ? 'bg-coin-primary/10 text-coin-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'"
+                    >{{ incomes.length }}</span>
                 </button>
                 <button
                     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
@@ -133,6 +142,18 @@ const goToTransactions = (categoryId: number, type: string) => {
                     <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
                         :class="activeSection === 'saving' ? 'bg-coin-primary/10 text-coin-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'"
                     >{{ savings.length }}</span>
+                </button>
+                <button
+                    class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+                    :class="activeSection === 'loan'
+                        ? 'bg-white dark:bg-coin-dark-card text-gray-900 dark:text-white shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                    @click="activeSection = 'loan'"
+                >
+                    Loan
+                    <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
+                        :class="activeSection === 'loan' ? 'bg-coin-primary/10 text-coin-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'"
+                    >{{ loans.length }}</span>
                 </button>
             </div>
 
@@ -170,7 +191,12 @@ const goToTransactions = (categoryId: number, type: string) => {
                             >
                                 {{ item.name[0].toUpperCase() }}
                             </div>
-                            <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
+                            <div class="flex-1 min-w-0">
+                                <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
+                            </div>
+                            <span class="text-sm font-bold shrink-0" :class="isOver(item) ? 'text-red-500' : 'text-emerald-500'">
+                                {{ fmt((item.budget ?? 0) - item.spent) }}
+                            </span>
                         </div>
 
                         <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
@@ -200,12 +226,6 @@ const goToTransactions = (categoryId: number, type: string) => {
                             </span>
                         </div>
 
-                        <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-white/5">
-                            <span class="text-xs text-gray-400 dark:text-gray-500">Available</span>
-                            <span class="text-xs font-semibold" :class="isOver(item) ? 'text-red-500' : 'text-emerald-500'">
-                                {{ fmt((item.budget ?? 0) - item.spent) }}
-                            </span>
-                        </div>
                     </div>
                 </div>
                 <div v-else class="card text-center py-12 text-sm text-gray-400 dark:text-gray-600">
@@ -390,6 +410,59 @@ const goToTransactions = (categoryId: number, type: string) => {
                 </div>
                 <div v-else class="card text-center py-12 text-sm text-gray-400 dark:text-gray-600">
                     Add saving categories to track your goals.
+                </div>
+            </template>
+
+
+            <template v-if="activeSection === 'income'">
+
+                <div class="card">
+                    <div class="grid grid-cols-2 gap-2 sm:gap-4 text-center">
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Total Earned</p>
+                            <p class="text-sm sm:text-lg font-bold text-emerald-500 truncate">{{ fmt(totalIncome) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Sources</p>
+                            <p class="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">{{ incomes.length }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="incomes.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div
+                        v-for="item in incomes"
+                        :key="item.category_id"
+                        class="card card-hoverable flex flex-col gap-3"
+                        @click="goToTransactions(item.category_id, 'income')"
+                    >
+                        <div class="flex items-center gap-2.5">
+                            <div
+                                class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                :style="{ backgroundColor: item.color, boxShadow: `0 4px 12px ${item.color}50` }"
+                            >
+                                {{ item.name[0].toUpperCase() }}
+                            </div>
+                            <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
+                        </div>
+
+                        <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
+                            <div
+                                class="h-full rounded-full transition-all duration-500"
+                                :style="{ width: ready ? `${incomePct(item)}%` : '0%', backgroundColor: item.color }"
+                            />
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-600 dark:text-gray-400 font-semibold">{{ fmt(item.earned_this_month) }}</span>
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                                {{ incomePct(item) }}% of total
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="card text-center py-12 text-sm text-gray-400 dark:text-gray-600">
+                    Add income categories to track earnings.
                 </div>
             </template>
         </div>

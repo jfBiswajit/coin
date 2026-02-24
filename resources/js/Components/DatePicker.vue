@@ -151,7 +151,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
                     v-for="(cell, idx) in calendarDays"
                     :key="idx"
                     type="button"
-                    class="aspect-square flex items-center justify-center text-xs rounded-xl transition-all"
+                    class="aspect-square flex items-center justify-center text-xs rounded-full transition-all"
                     :class="[
                         cell.date === modelValue
                             ? 'bg-coin-primary text-white ring-2 ring-coin-primary font-bold'

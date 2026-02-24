@@ -60,6 +60,24 @@ class BudgetController extends Controller
             'remaining' => max(0, (float) $cat->loan_amount - (float) ($loanPaidTotal[$cat->id] ?? 0)),
         ]);
 
+        $incomeCategories = $user->categories()->where('type', 'income')->orderBy('name')->get();
+
+        $incomeThisMonth = $user->transactions()
+            ->where('type', 'income')
+            ->whereYear('transacted_at', $year)
+            ->whereMonth('transacted_at', $month)
+            ->selectRaw('category_id, SUM(amount) as total')
+            ->groupBy('category_id')
+            ->pluck('total', 'category_id');
+
+        $incomes = $incomeCategories->map(fn ($cat) => [
+            'category_id' => $cat->id,
+            'name' => $cat->name,
+            'color' => $cat->color,
+            'icon' => $cat->icon,
+            'earned_this_month' => (float) ($incomeThisMonth[$cat->id] ?? 0),
+        ]);
+
         $savingCategories = $user->categories()->where('type', 'saving')->orderBy('name')->get();
 
         $savedThisMonth = $user->transactions()
@@ -91,6 +109,7 @@ class BudgetController extends Controller
             'expenses' => $expenses,
             'loans' => $loans,
             'savings' => $savings,
+            'incomes' => $incomes,
             'month' => $month,
             'year' => $year,
         ]);
