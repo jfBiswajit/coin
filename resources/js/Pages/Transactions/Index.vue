@@ -63,7 +63,7 @@ const applyFilters = () => {
         year: Number(year),
         type: activeTab.value,
         ...(categoryId.value ? { category_id: categoryId.value } : {}),
-    }, { preserveScroll: true, replace: true });
+    }, { preserveScroll: true, preserveState: true, replace: true });
 };
 
 watch([monthYear, activeTab, categoryId], applyFilters);
