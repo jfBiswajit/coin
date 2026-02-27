@@ -79,6 +79,16 @@ const isGoalMet = (item: SavingItem) => !!item.target_amount && item.total_saved
 const monthlyPct = (item: SavingItem) =>
     item.monthly_amount > 0 ? Math.min(100, (item.saved_this_month / item.monthly_amount) * 100) : 0;
 
+const showCompletedLoans = ref(false);
+const activeLoans = computed(() => props.loans.filter(l => l.remaining > 0));
+const completedLoans = computed(() => props.loans.filter(l => l.remaining === 0));
+const visibleLoans = computed(() => showCompletedLoans.value ? props.loans : activeLoans.value);
+
+const showCompletedSavings = ref(false);
+const activeSavings = computed(() => props.savings.filter(s => !isGoalMet(s)));
+const completedSavings = computed(() => props.savings.filter(s => isGoalMet(s)));
+const visibleSavings = computed(() => showCompletedSavings.value ? props.savings : activeSavings.value);
+
 const goToTransactions = (categoryId: number, type: string) => {
     router.get('/transactions', {
         month: props.month,
@@ -269,9 +279,10 @@ const goToTransactions = (categoryId: number, type: string) => {
                     </div>
                 </div>
 
-                <div v-if="loans.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <template v-if="loans.length">
+                <div v-if="visibleLoans.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div
-                        v-for="item in loans"
+                        v-for="item in visibleLoans"
                         :key="item.category_id"
                         class="card card-hoverable flex flex-col gap-3"
                         @click="goToTransactions(item.category_id, 'loan')"
@@ -330,6 +341,17 @@ const goToTransactions = (categoryId: number, type: string) => {
                         </div>
                     </div>
                 </div>
+                <div v-else class="card text-center py-8 text-sm text-gray-400 dark:text-gray-600">
+                    All loans paid off.
+                </div>
+                <button
+                    v-if="completedLoans.length"
+                    class="w-full text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors py-2"
+                    @click="showCompletedLoans = !showCompletedLoans"
+                >
+                    {{ showCompletedLoans ? 'Hide completed' : `Show completed (${completedLoans.length})` }}
+                </button>
+                </template>
                 <div v-else class="card text-center py-12 text-sm text-gray-400 dark:text-gray-600">
                     Add loan categories to track repayments.
                 </div>
@@ -364,9 +386,10 @@ const goToTransactions = (categoryId: number, type: string) => {
                     </div>
                 </div>
 
-                <div v-if="savings.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <template v-if="savings.length">
+                <div v-if="visibleSavings.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div
-                        v-for="item in savings"
+                        v-for="item in visibleSavings"
                         :key="item.category_id"
                         class="card card-hoverable flex flex-col gap-3"
                         @click="goToTransactions(item.category_id, 'saving')"
@@ -436,6 +459,17 @@ const goToTransactions = (categoryId: number, type: string) => {
                         </div>
                     </div>
                 </div>
+                <div v-else class="card text-center py-8 text-sm text-gray-400 dark:text-gray-600">
+                    All saving goals achieved.
+                </div>
+                <button
+                    v-if="completedSavings.length"
+                    class="w-full text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors py-2"
+                    @click="showCompletedSavings = !showCompletedSavings"
+                >
+                    {{ showCompletedSavings ? 'Hide completed' : `Show completed (${completedSavings.length})` }}
+                </button>
+                </template>
                 <div v-else class="card text-center py-12 text-sm text-gray-400 dark:text-gray-600">
                     Add saving categories to track your goals.
                 </div>
