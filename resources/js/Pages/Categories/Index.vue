@@ -226,7 +226,7 @@ const cardSubtitle = (cat: Category) => {
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expected Monthly Amount</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-violet-400 select-none pointer-events-none">৳</span>
-                        <input v-model="addForm.monthly_amount" type="number" step="0.01" min="0.01" required placeholder="0.00" class="input pl-7" />
+                        <input v-model="addForm.monthly_amount" type="number" step="0.01" min="0" required placeholder="0.00" class="input pl-7" />
                     </div>
                     <p v-if="addForm.errors.monthly_amount" class="mt-1 text-xs text-red-500">{{ addForm.errors.monthly_amount }}</p>
                 </div>
@@ -237,7 +237,7 @@ const cardSubtitle = (cat: Category) => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Loan Amount</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-violet-400 select-none pointer-events-none">৳</span>
-                            <input v-model="addForm.loan_amount" type="number" step="0.01" min="0.01" required placeholder="0.00" class="input pl-7" />
+                            <input v-model="addForm.loan_amount" type="number" step="0.01" min="0" required placeholder="0.00" class="input pl-7" />
                         </div>
                         <p v-if="addForm.errors.loan_amount" class="mt-1 text-xs text-red-500">{{ addForm.errors.loan_amount }}</p>
                     </div>
@@ -245,7 +245,7 @@ const cardSubtitle = (cat: Category) => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly EMI</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-violet-400 select-none pointer-events-none">৳</span>
-                            <input v-model="addForm.emi_amount" type="number" step="0.01" min="0.01" required placeholder="0.00" class="input pl-7" />
+                            <input v-model="addForm.emi_amount" type="number" step="0.01" min="0" required placeholder="0.00" class="input pl-7" />
                         </div>
                         <p v-if="addForm.errors.emi_amount" class="mt-1 text-xs text-red-500">{{ addForm.errors.emi_amount }}</p>
                     </div>
@@ -257,7 +257,7 @@ const cardSubtitle = (cat: Category) => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly Contribution</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-violet-400 select-none pointer-events-none">৳</span>
-                            <input v-model="addForm.monthly_amount" type="number" step="0.01" min="0.01" required placeholder="0.00" class="input pl-7" />
+                            <input v-model="addForm.monthly_amount" type="number" step="0.01" min="0" required placeholder="0.00" class="input pl-7" />
                         </div>
                         <p v-if="addForm.errors.monthly_amount" class="mt-1 text-xs text-red-500">{{ addForm.errors.monthly_amount }}</p>
                     </div>
@@ -329,7 +329,7 @@ const cardSubtitle = (cat: Category) => {
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expected Monthly Amount</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-violet-400 select-none pointer-events-none">৳</span>
-                        <input v-model="editForm.monthly_amount" type="number" step="0.01" min="0.01" required placeholder="0.00" class="input pl-7" />
+                        <input v-model="editForm.monthly_amount" type="number" step="0.01" min="0" required placeholder="0.00" class="input pl-7" />
                     </div>
                     <p v-if="editForm.errors.monthly_amount" class="mt-1 text-xs text-red-500">{{ editForm.errors.monthly_amount }}</p>
                 </div>
@@ -340,7 +340,7 @@ const cardSubtitle = (cat: Category) => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Loan Amount</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-violet-400 select-none pointer-events-none">৳</span>
-                            <input v-model="editForm.loan_amount" type="number" step="0.01" min="0.01" required placeholder="0.00" class="input pl-7" />
+                            <input v-model="editForm.loan_amount" type="number" step="0.01" min="0" required placeholder="0.00" class="input pl-7" />
                         </div>
                         <p v-if="editForm.errors.loan_amount" class="mt-1 text-xs text-red-500">{{ editForm.errors.loan_amount }}</p>
                     </div>
@@ -348,7 +348,7 @@ const cardSubtitle = (cat: Category) => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly EMI</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-violet-400 select-none pointer-events-none">৳</span>
-                            <input v-model="editForm.emi_amount" type="number" step="0.01" min="0.01" required placeholder="0.00" class="input pl-7" />
+                            <input v-model="editForm.emi_amount" type="number" step="0.01" min="0" required placeholder="0.00" class="input pl-7" />
                         </div>
                         <p v-if="editForm.errors.emi_amount" class="mt-1 text-xs text-red-500">{{ editForm.errors.emi_amount }}</p>
                     </div>
@@ -360,7 +360,7 @@ const cardSubtitle = (cat: Category) => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly Contribution</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-violet-400 select-none pointer-events-none">৳</span>
-                            <input v-model="editForm.monthly_amount" type="number" step="0.01" min="0.01" required placeholder="0.00" class="input pl-7" />
+                            <input v-model="editForm.monthly_amount" type="number" step="0.01" min="0" required placeholder="0.00" class="input pl-7" />
                         </div>
                         <p v-if="editForm.errors.monthly_amount" class="mt-1 text-xs text-red-500">{{ editForm.errors.monthly_amount }}</p>
                     </div>

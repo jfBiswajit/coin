@@ -50,18 +50,18 @@ class CategoryController extends Controller
             $extra = $request->validate(['budget_amount' => 'required|numeric|min:0']);
             $categoryData['monthly_budget'] = $extra['budget_amount'];
         } elseif ($base['type'] === 'income') {
-            $extra = $request->validate(['monthly_amount' => 'required|numeric|min:0.01']);
+            $extra = $request->validate(['monthly_amount' => 'required|numeric|min:0']);
             $categoryData['monthly_amount'] = $extra['monthly_amount'];
         } elseif ($base['type'] === 'loan') {
             $extra = $request->validate([
-                'loan_amount' => 'required|numeric|min:0.01',
-                'emi_amount' => 'required|numeric|min:0.01',
+                'loan_amount' => 'required|numeric|min:0',
+                'emi_amount' => 'required|numeric|min:0',
             ]);
             $categoryData['loan_amount'] = $extra['loan_amount'];
             $categoryData['emi_amount'] = $extra['emi_amount'];
         } elseif ($base['type'] === 'saving') {
             $extra = $request->validate([
-                'monthly_amount' => 'required|numeric|min:0.01',
+                'monthly_amount' => 'required|numeric|min:0',
                 'target_amount' => 'nullable|numeric|min:0',
             ]);
             $categoryData['monthly_amount'] = $extra['monthly_amount'];
@@ -87,18 +87,18 @@ class CategoryController extends Controller
             $extra = $request->validate(['budget_amount' => 'required|numeric|min:0']);
             $data['monthly_budget'] = $extra['budget_amount'];
         } elseif ($category->type === 'income') {
-            $extra = $request->validate(['monthly_amount' => 'required|numeric|min:0.01']);
+            $extra = $request->validate(['monthly_amount' => 'required|numeric|min:0']);
             $data['monthly_amount'] = $extra['monthly_amount'];
         } elseif ($category->type === 'loan') {
             $extra = $request->validate([
-                'loan_amount' => 'required|numeric|min:0.01',
-                'emi_amount' => 'required|numeric|min:0.01',
+                'loan_amount' => 'required|numeric|min:0',
+                'emi_amount' => 'required|numeric|min:0',
             ]);
             $data['loan_amount'] = $extra['loan_amount'];
             $data['emi_amount'] = $extra['emi_amount'];
         } elseif ($category->type === 'saving') {
             $extra = $request->validate([
-                'monthly_amount' => 'required|numeric|min:0.01',
+                'monthly_amount' => 'required|numeric|min:0',
                 'target_amount' => 'nullable|numeric|min:0',
             ]);
             $data['monthly_amount'] = $extra['monthly_amount'];
