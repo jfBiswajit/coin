@@ -26,7 +26,7 @@ class TransactionController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
-        $transactions = $query->orderByDesc('transacted_at')->paginate(20)->through(fn($t) => [
+        $transactions = $query->orderByDesc('transacted_at')->orderByDesc('created_at')->paginate(20)->through(fn($t) => [
             'id' => $t->id,
             'amount' => (float) $t->amount,
             'type' => $t->type,
