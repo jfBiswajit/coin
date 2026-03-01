@@ -75,6 +75,7 @@ class BudgetController extends Controller
             'name' => $cat->name,
             'color' => $cat->color,
             'icon' => $cat->icon,
+            'monthly_amount' => (float) ($cat->monthly_amount ?? 0),
             'earned_this_month' => (float) ($incomeThisMonth[$cat->id] ?? 0),
         ]);
 
