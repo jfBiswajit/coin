@@ -71,7 +71,7 @@ const savingPct = (item: SavingItem) =>
 const totalIncome = computed(() => props.incomes.reduce((s, i) => s + i.earned_this_month, 0));
 const totalExpectedIncome = computed(() => props.incomes.reduce((s, i) => s + i.monthly_amount, 0));
 const incomePct = (item: IncomeItem) =>
-    item.monthly_amount > 0 ? Math.min(100, (item.earned_this_month / item.monthly_amount) * 100) : 0;
+    item.monthly_amount > 0 ? Math.min(100, (item.earned_this_month / item.monthly_amount) * 100) : 100;
 const isIncomeOver = (item: IncomeItem) => item.monthly_amount > 0 && item.earned_this_month >= item.monthly_amount;
 
 const totalLoanAmount = computed(() => props.loans.reduce((s, l) => s + l.loan_amount, 0));
@@ -402,7 +402,7 @@ const goToTransactions = (categoryId: number, type: string) => {
                             <div class="flex-1 min-w-0">
                                 <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
                             </div>
-                            <span class="text-sm font-bold shrink-0" :class="isGoalMet(item) ? 'text-emerald-500' : 'text-blue-500'">{{ fmt(item.total_saved) }}</span>
+                            <span class="text-sm font-bold shrink-0" :class="!item.target_amount || isGoalMet(item) ? 'text-emerald-500' : 'text-blue-500'">{{ fmt(item.total_saved) }}</span>
                         </div>
 
 
@@ -427,7 +427,15 @@ const goToTransactions = (categoryId: number, type: string) => {
                                 </span>
                             </div>
                         </template>
-                        <template v-else />
+                        <template v-else>
+                            <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
+                                <div class="h-full rounded-full bg-emerald-500 transition-all duration-500" :style="{ width: ready ? '100%' : '0%' }" />
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-400 dark:text-gray-500">{{ fmt(item.total_saved) }}</span>
+                                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">No target</span>
+                            </div>
+                        </template>
 
                         <div class="space-y-1.5 pt-2 border-t border-gray-100 dark:border-white/5">
                             <div v-if="item.monthly_amount > 0" class="flex justify-between text-xs">
@@ -498,15 +506,15 @@ const goToTransactions = (categoryId: number, type: string) => {
                             <div class="flex-1 min-w-0">
                                 <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
                             </div>
-                            <span class="text-sm font-bold shrink-0" :class="isIncomeOver(item) ? 'text-emerald-500' : 'text-orange-500'">
-                                {{ fmt(Math.abs(item.monthly_amount - item.earned_this_month)) }}
+                            <span class="text-sm font-bold shrink-0" :class="item.monthly_amount === 0 || isIncomeOver(item) ? 'text-emerald-500' : 'text-orange-500'">
+                                {{ item.monthly_amount === 0 ? fmt(item.earned_this_month) : fmt(Math.abs(item.monthly_amount - item.earned_this_month)) }}
                             </span>
                         </div>
 
                         <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
                             <div
                                 class="h-full rounded-full transition-all duration-500"
-                                :class="isIncomeOver(item) ? 'bg-emerald-500' : incomePct(item) >= 75 ? 'bg-amber-400' : 'bg-blue-500'"
+                                :class="item.monthly_amount === 0 || isIncomeOver(item) ? 'bg-emerald-500' : incomePct(item) >= 75 ? 'bg-amber-400' : 'bg-blue-500'"
                                 :style="{ width: ready ? `${incomePct(item)}%` : '0%' }"
                             />
                         </div>
@@ -520,13 +528,13 @@ const goToTransactions = (categoryId: number, type: string) => {
                             </div>
                             <span
                                 class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                                :class="isIncomeOver(item)
+                                :class="item.monthly_amount === 0 || isIncomeOver(item)
                                     ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                                     : incomePct(item) >= 75
                                         ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400'
                                         : 'bg-blue-100 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400'"
                             >
-                                {{ Math.round(incomePct(item)) }}%
+                                {{ item.monthly_amount === 0 ? 'No target' : `${Math.round(incomePct(item))}%` }}
                             </span>
                         </div>
                     </div>
