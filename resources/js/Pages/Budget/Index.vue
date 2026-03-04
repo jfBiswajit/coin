@@ -222,7 +222,7 @@ const goToTransactions = (categoryId: number, type: string) => {
                         <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
                             <div
                                 class="h-full rounded-full transition-all duration-500"
-                                :class="!item.budget ? 'bg-emerald-500' : isOver(item) ? 'bg-red-500' : itemPct(item) > 75 ? 'bg-amber-400' : 'bg-emerald-500'"
+                                :class="!item.budget ? 'bg-red-500' : isOver(item) ? 'bg-red-500' : itemPct(item) > 75 ? 'bg-amber-400' : 'bg-emerald-500'"
                                 :style="{ width: ready ? (item.budget ? `${itemPct(item)}%` : '100%') : '0%' }"
                             />
                         </div>
