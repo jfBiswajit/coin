@@ -54,7 +54,7 @@ const fmt = (v: number) => `৳${new Intl.NumberFormat('en', { minimumFractionDi
 
 const itemPct = (item: ExpenseItem) =>
     item.budget ? Math.min(100, (item.spent / item.budget) * 100) : 0;
-const isOver = (item: ExpenseItem) => item.budget !== null && item.spent > item.budget;
+const isOver = (item: ExpenseItem) => !!item.budget && item.spent > item.budget;
 
 const totalBudget = computed(() => props.expenses.reduce((s, b) => s + (b.budget ?? 0), 0));
 const totalSpent = computed(() => props.expenses.reduce((s, b) => s + b.spent, 0));
@@ -215,15 +215,15 @@ const goToTransactions = (categoryId: number, type: string) => {
                                 <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
                             </div>
                             <span class="text-sm font-bold shrink-0" :class="isOver(item) ? 'text-red-500' : 'text-emerald-500'">
-                                {{ fmt((item.budget ?? 0) - item.spent) }}
+                                {{ item.budget ? fmt(item.budget - item.spent) : fmt(item.spent) }}
                             </span>
                         </div>
 
                         <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
                             <div
                                 class="h-full rounded-full transition-all duration-500"
-                                :class="isOver(item) ? 'bg-red-500' : itemPct(item) > 75 ? 'bg-amber-400' : 'bg-emerald-500'"
-                                :style="{ width: ready ? `${itemPct(item)}%` : '0%' }"
+                                :class="!item.budget ? 'bg-emerald-500' : isOver(item) ? 'bg-red-500' : itemPct(item) > 75 ? 'bg-amber-400' : 'bg-emerald-500'"
+                                :style="{ width: ready ? (item.budget ? `${itemPct(item)}%` : '100%') : '0%' }"
                             />
                         </div>
 
@@ -232,17 +232,19 @@ const goToTransactions = (categoryId: number, type: string) => {
                                 <span :class="isOver(item) ? 'text-red-500 font-semibold' : 'text-gray-600 dark:text-gray-400'">
                                     {{ fmt(item.spent) }}
                                 </span>
-                                <span v-if="item.budget !== null" class="text-gray-400 dark:text-gray-500"> / {{ fmt(item.budget) }}</span>
+                                <span v-if="item.budget" class="text-gray-400 dark:text-gray-500"> / {{ fmt(item.budget) }}</span>
                             </div>
                             <span
                                 class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                                :class="isOver(item)
-                                    ? 'bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400'
-                                    : itemPct(item) > 75
-                                        ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                                        : 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'"
+                                :class="!item.budget
+                                    ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                    : isOver(item)
+                                        ? 'bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400'
+                                        : itemPct(item) > 75
+                                            ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                                            : 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'"
                             >
-                                {{ Math.round(itemPct(item)) }}%
+                                {{ item.budget ? `${Math.round(itemPct(item))}%` : 'No budget' }}
                             </span>
                         </div>
 
