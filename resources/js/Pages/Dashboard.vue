@@ -127,7 +127,7 @@ const formatDate = (dt: string) => {
                         <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1.5"><Wallet class="w-3.5 h-3.5" />Money Needed</p>
                         <span class="text-[9px] font-medium text-gray-300 dark:text-gray-600 uppercase tracking-wider">This month</span>
                     </div>
-                    <p class="text-2xl font-black tracking-tight text-gray-900 dark:text-white">{{ fmt(moneyNeeded) }}</p>
+                    <p class="text-2xl font-black tracking-tight text-violet-500">{{ fmt(moneyNeeded) }}</p>
                     <p class="text-[11px] mt-1" :class="shortfall <= 0 ? 'text-emerald-500' : 'text-amber-500'">
                         <template v-if="shortfall <= 0">Fully covered</template>
                         <template v-else>{{ fmt(shortfall) }} shortfall</template>
