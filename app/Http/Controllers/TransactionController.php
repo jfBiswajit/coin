@@ -194,7 +194,7 @@ class TransactionController extends Controller
             }
             if ($cat->type === 'saving') {
                 if ($cat->withdrawn_at !== null) return false;
-                if ($cat->target_amount !== null) {
+                if ($cat->target_amount !== null && (float) $cat->target_amount > 0) {
                     return (float) ($savingTotals[$cat->id] ?? 0) < (float) $cat->target_amount;
                 }
             }

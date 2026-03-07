@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, MoreVertical } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
 type ExpenseItem = {
@@ -35,7 +35,10 @@ const props = defineProps<{
 }>();
 
 const ready = ref(false);
-onMounted(() => requestAnimationFrame(() => { ready.value = true; }));
+onMounted(() => {
+    requestAnimationFrame(() => { ready.value = true; });
+    document.addEventListener('click', () => { openMenu.value = null; });
+});
 
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -104,6 +107,9 @@ const goToTransactions = (categoryId: number, type: string) => {
         category_id: String(categoryId),
     });
 };
+
+const openMenu = ref<number | null>(null);
+const toggleMenu = (id: number, e: Event) => { e.stopPropagation(); openMenu.value = openMenu.value === id ? null : id; };
 
 const withdrawState = ref<WithdrawState | null>(null);
 const settleConfirm = ref<LoanItem | null>(null);
@@ -329,12 +335,21 @@ const submitWithdraw = () => {
                             <div class="flex-1 min-w-0">
                                 <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
                             </div>
-                            <button
-                                v-if="item.remaining > 0 && !item.is_settled"
-                                class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-500/25 transition-colors shrink-0"
-                                @click.stop="settleConfirm = item"
-                            >Settle</button>
                             <span class="text-sm font-bold shrink-0" :class="item.remaining === 0 || item.is_settled ? 'text-emerald-500' : 'text-orange-500'">{{ fmt(item.remaining) }}</span>
+                            <div v-if="item.remaining > 0 && !item.is_settled" class="relative shrink-0">
+                                <button
+                                    class="p-1 rounded-lg hover:bg-white/10 transition-colors text-gray-400 dark:text-gray-500"
+                                    @click.stop="toggleMenu(item.category_id, $event)"
+                                >
+                                    <MoreVertical class="w-4 h-4" />
+                                </button>
+                                <div v-if="openMenu === item.category_id" class="absolute right-0 top-7 z-20 bg-white dark:bg-coin-dark-card border border-gray-100 dark:border-white/10 rounded-xl shadow-lg py-1 min-w-[120px]">
+                                    <button
+                                        class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                        @click.stop="settleConfirm = item; openMenu = null"
+                                    >Settle</button>
+                                </div>
+                            </div>
                         </div>
 
 
@@ -442,12 +457,21 @@ const submitWithdraw = () => {
                             <div class="flex-1 min-w-0">
                                 <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
                             </div>
-                            <button
-                                v-if="item.total_saved > 0 && !item.is_withdrawn"
-                                class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-500/25 transition-colors shrink-0"
-                                @click="openWithdraw(item, $event)"
-                            >Withdraw</button>
                             <span class="text-sm font-bold shrink-0" :class="!item.target_amount || isCompleted(item) ? 'text-emerald-500' : 'text-blue-500'">{{ fmt(item.total_saved) }}</span>
+                            <div v-if="item.total_saved > 0 && !item.is_withdrawn" class="relative shrink-0">
+                                <button
+                                    class="p-1 rounded-lg hover:bg-white/10 transition-colors text-gray-400 dark:text-gray-500"
+                                    @click.stop="toggleMenu(item.category_id, $event)"
+                                >
+                                    <MoreVertical class="w-4 h-4" />
+                                </button>
+                                <div v-if="openMenu === item.category_id" class="absolute right-0 top-7 z-20 bg-white dark:bg-coin-dark-card border border-gray-100 dark:border-white/10 rounded-xl shadow-lg py-1 min-w-[120px]">
+                                    <button
+                                        class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                        @click.stop="openWithdraw(item, $event); openMenu = null"
+                                    >Withdraw</button>
+                                </div>
+                            </div>
                         </div>
 
 
