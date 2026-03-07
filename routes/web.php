@@ -23,6 +23,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/budget', [BudgetController::class, 'index'])->name('budget.index');
     Route::post('/budget', [BudgetController::class, 'upsert'])->name('budget.upsert');
+    Route::post('/savings/{category}/withdraw', [TransactionController::class, 'withdrawSaving'])->name('savings.withdraw');
+    Route::post('/loans/{category}/settle', [TransactionController::class, 'settleLoan'])->name('loans.settle');
 
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');

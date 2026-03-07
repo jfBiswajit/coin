@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    protected $fillable = ['user_id', 'name', 'type', 'color', 'icon', 'monthly_budget', 'loan_amount', 'emi_amount', 'monthly_amount', 'target_amount'];
+    protected $fillable = ['user_id', 'name', 'type', 'color', 'icon', 'monthly_budget', 'loan_amount', 'emi_amount', 'monthly_amount', 'target_amount', 'withdrawn_at', 'settled_at'];
 
     protected function casts(): array
     {

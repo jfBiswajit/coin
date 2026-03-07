@@ -58,6 +58,7 @@ class BudgetController extends Controller
             'paid_this_month' => (float) ($loanPaidThisMonth[$cat->id] ?? 0),
             'total_paid' => (float) ($loanPaidTotal[$cat->id] ?? 0),
             'remaining' => max(0, (float) $cat->loan_amount - (float) ($loanPaidTotal[$cat->id] ?? 0)),
+            'is_settled' => $cat->settled_at !== null,
         ]);
 
         $incomeCategories = $user->categories()->where('type', 'income')->orderBy('name')->get();
@@ -104,6 +105,7 @@ class BudgetController extends Controller
             'target_amount' => $cat->target_amount !== null ? (float) $cat->target_amount : null,
             'saved_this_month' => (float) ($savedThisMonth[$cat->id] ?? 0),
             'total_saved' => (float) ($savedTotal[$cat->id] ?? 0),
+            'is_withdrawn' => $cat->withdrawn_at !== null,
         ]);
 
         return Inertia::render('Budget/Index', [

@@ -128,6 +128,48 @@ class TransactionController extends Controller
         return back();
     }
 
+    public function settleLoan(Request $request, $categoryId)
+    {
+        $category = $request->user()->categories()->where('type', 'loan')->findOrFail($categoryId);
+        $category->update(['settled_at' => now()]);
+
+        return back()->with('success', 'Loan settled.');
+    }
+
+    public function withdrawSaving(Request $request, $categoryId)
+    {
+        $user = $request->user();
+        $savingCategory = $user->categories()->where('type', 'saving')->findOrFail($categoryId);
+
+        $data = $request->validate([
+            'income_category_id' => 'required|exists:categories,id',
+        ]);
+
+        $incomeCategory = $user->categories()->where('type', 'income')->findOrFail($data['income_category_id']);
+
+        $totalSaved = $user->transactions()
+            ->where('type', 'saving')
+            ->where('category_id', $savingCategory->id)
+            ->sum('amount');
+
+        if ($totalSaved <= 0) {
+            return back()->withErrors(['withdraw' => 'No savings to withdraw.']);
+        }
+
+        $user->transactions()->create([
+            'uuid' => Str::uuid()->toString(),
+            'category_id' => $incomeCategory->id,
+            'amount' => $totalSaved,
+            'type' => 'income',
+            'title' => 'Withdrawal – ' . $savingCategory->name,
+            'transacted_at' => now()->toDateString(),
+        ]);
+
+        $savingCategory->update(['withdrawn_at' => now()]);
+
+        return back()->with('success', 'Withdrawal successful.');
+    }
+
     private function activeCategories($user)
     {
         $categories = $user->categories()->orderBy('type')->orderBy('name')->get();
@@ -146,11 +188,15 @@ class TransactionController extends Controller
 
         return $categories->filter(function ($cat) use ($loanPaid, $savingTotals) {
             if ($cat->type === 'loan') {
+                if ($cat->settled_at !== null) return false;
                 $remaining = (float) $cat->loan_amount - (float) ($loanPaid[$cat->id] ?? 0);
                 return $remaining > 0;
             }
-            if ($cat->type === 'saving' && $cat->target_amount !== null) {
-                return (float) ($savingTotals[$cat->id] ?? 0) < (float) $cat->target_amount;
+            if ($cat->type === 'saving') {
+                if ($cat->withdrawn_at !== null) return false;
+                if ($cat->target_amount !== null) {
+                    return (float) ($savingTotals[$cat->id] ?? 0) < (float) $cat->target_amount;
+                }
             }
             return true;
         })->map(fn($c) => [

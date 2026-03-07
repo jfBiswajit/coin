@@ -32,6 +32,7 @@ class DashboardController extends Controller
             ->pluck('total', 'category_id');
 
         $totalLoanOutstanding = $loanCategories->sum(function ($cat) use ($loanPaidTotal) {
+            if ($cat->settled_at !== null) return 0;
             return max(0, (float) $cat->loan_amount - (float) ($loanPaidTotal[$cat->id] ?? 0));
         });
 

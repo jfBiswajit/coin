@@ -11,7 +11,7 @@ type ExpenseItem = {
 type LoanItem = {
     category_id: number; name: string; color: string; icon: string;
     loan_amount: number; emi_amount: number;
-    paid_this_month: number; total_paid: number; remaining: number;
+    paid_this_month: number; total_paid: number; remaining: number; is_settled: boolean;
 };
 type IncomeItem = {
     category_id: number; name: string; color: string; icon: string;
@@ -20,8 +20,10 @@ type IncomeItem = {
 type SavingItem = {
     category_id: number; name: string; color: string; icon: string;
     monthly_amount: number; target_amount: number | null;
-    saved_this_month: number; total_saved: number;
+    saved_this_month: number; total_saved: number; is_withdrawn: boolean;
 };
+
+type WithdrawState = { item: SavingItem; incomeCategoryId: number | null };
 
 const props = defineProps<{
     expenses: ExpenseItem[];
@@ -74,22 +76,24 @@ const incomePct = (item: IncomeItem) =>
     item.monthly_amount > 0 ? Math.min(100, (item.earned_this_month / item.monthly_amount) * 100) : 100;
 const isIncomeOver = (item: IncomeItem) => item.monthly_amount > 0 && item.earned_this_month >= item.monthly_amount;
 
-const totalLoanAmount = computed(() => props.loans.reduce((s, l) => s + l.loan_amount, 0));
-const totalLoanPaid = computed(() => props.loans.reduce((s, l) => s + l.total_paid, 0));
-const totalLoanRemaining = computed(() => props.loans.reduce((s, l) => s + l.remaining, 0));
+const activeLoansForTotal = computed(() => props.loans.filter(l => !l.is_settled));
+const totalLoanAmount = computed(() => activeLoansForTotal.value.reduce((s, l) => s + l.loan_amount, 0));
+const totalLoanPaid = computed(() => activeLoansForTotal.value.reduce((s, l) => s + l.total_paid, 0));
+const totalLoanRemaining = computed(() => activeLoansForTotal.value.reduce((s, l) => s + l.remaining, 0));
 
 const isGoalMet = (item: SavingItem) => !!item.target_amount && item.total_saved >= item.target_amount;
+const isCompleted = (item: SavingItem) => item.is_withdrawn || isGoalMet(item);
 const totalSavedAllTime = computed(() => props.savings.reduce((s, sv) => s + sv.total_saved, 0));
 const totalSavingTarget = computed(() => props.savings.reduce((s, sv) => s + (sv.target_amount ?? 0), 0));
 
 const showCompletedLoans = ref(false);
-const activeLoans = computed(() => props.loans.filter(l => l.remaining > 0));
-const completedLoans = computed(() => props.loans.filter(l => l.remaining === 0));
+const activeLoans = computed(() => props.loans.filter(l => l.remaining > 0 && !l.is_settled));
+const completedLoans = computed(() => props.loans.filter(l => l.remaining === 0 || l.is_settled));
 const visibleLoans = computed(() => showCompletedLoans.value ? props.loans : activeLoans.value);
 
 const showCompletedSavings = ref(false);
-const activeSavings = computed(() => props.savings.filter(s => !isGoalMet(s)));
-const completedSavings = computed(() => props.savings.filter(s => isGoalMet(s)));
+const activeSavings = computed(() => props.savings.filter(s => !isCompleted(s)));
+const completedSavings = computed(() => props.savings.filter(s => isCompleted(s)));
 const visibleSavings = computed(() => showCompletedSavings.value ? props.savings : activeSavings.value);
 
 const goToTransactions = (categoryId: number, type: string) => {
@@ -99,6 +103,32 @@ const goToTransactions = (categoryId: number, type: string) => {
         type,
         category_id: String(categoryId),
     });
+};
+
+const withdrawState = ref<WithdrawState | null>(null);
+const settleConfirm = ref<LoanItem | null>(null);
+
+const submitSettle = () => {
+    if (!settleConfirm.value) return;
+    router.post(
+        `/loans/${settleConfirm.value.category_id}/settle`,
+        {},
+        { onSuccess: () => { settleConfirm.value = null; } }
+    );
+};
+
+const openWithdraw = (item: SavingItem, e: Event) => {
+    e.stopPropagation();
+    withdrawState.value = { item, incomeCategoryId: null };
+};
+
+const submitWithdraw = () => {
+    if (!withdrawState.value || !withdrawState.value.incomeCategoryId) return;
+    router.post(
+        `/savings/${withdrawState.value.item.category_id}/withdraw`,
+        { income_category_id: withdrawState.value.incomeCategoryId },
+        { onSuccess: () => { withdrawState.value = null; } }
+    );
 };
 </script>
 
@@ -299,7 +329,12 @@ const goToTransactions = (categoryId: number, type: string) => {
                             <div class="flex-1 min-w-0">
                                 <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
                             </div>
-                            <span class="text-sm font-bold shrink-0" :class="item.remaining === 0 ? 'text-emerald-500' : 'text-orange-500'">{{ fmt(item.remaining) }}</span>
+                            <button
+                                v-if="item.remaining > 0 && !item.is_settled"
+                                class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-500/25 transition-colors shrink-0"
+                                @click.stop="settleConfirm = item"
+                            >Settle</button>
+                            <span class="text-sm font-bold shrink-0" :class="item.remaining === 0 || item.is_settled ? 'text-emerald-500' : 'text-orange-500'">{{ fmt(item.remaining) }}</span>
                         </div>
 
 
@@ -315,7 +350,10 @@ const goToTransactions = (categoryId: number, type: string) => {
                             <span class="text-xs text-gray-400 dark:text-gray-500">
                                 {{ fmt(item.total_paid) }} / {{ fmt(item.loan_amount) }}
                             </span>
-                            <span v-if="item.remaining === 0" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                            <span v-if="item.is_settled" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400">
+                                Settled
+                            </span>
+                            <span v-else-if="item.remaining === 0" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
                                 Paid Off
                             </span>
                             <span v-else class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
@@ -404,7 +442,12 @@ const goToTransactions = (categoryId: number, type: string) => {
                             <div class="flex-1 min-w-0">
                                 <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
                             </div>
-                            <span class="text-sm font-bold shrink-0" :class="!item.target_amount || isGoalMet(item) ? 'text-emerald-500' : 'text-blue-500'">{{ fmt(item.total_saved) }}</span>
+                            <button
+                                v-if="item.total_saved > 0 && !item.is_withdrawn"
+                                class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-500/25 transition-colors shrink-0"
+                                @click="openWithdraw(item, $event)"
+                            >Withdraw</button>
+                            <span class="text-sm font-bold shrink-0" :class="!item.target_amount || isCompleted(item) ? 'text-emerald-500' : 'text-blue-500'">{{ fmt(item.total_saved) }}</span>
                         </div>
 
 
@@ -420,7 +463,10 @@ const goToTransactions = (categoryId: number, type: string) => {
                                 <span class="text-xs text-gray-400 dark:text-gray-500">
                                     {{ fmt(item.total_saved) }} / {{ fmt(item.target_amount) }}
                                 </span>
-                                <span v-if="isGoalMet(item)" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                                <span v-if="item.is_withdrawn" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400">
+                                    Withdrawn
+                                </span>
+                                <span v-else-if="isGoalMet(item)" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
                                     Goal Achieved
                                 </span>
                                 <span v-else class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
@@ -545,6 +591,59 @@ const goToTransactions = (categoryId: number, type: string) => {
                     Add income categories to track earnings.
                 </div>
             </template>
+        </div>
+
+        <!-- Settle Loan Modal -->
+        <div v-if="settleConfirm" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" @click.self="settleConfirm = null">
+            <div class="bg-white dark:bg-coin-dark-card rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-xl">
+                <h2 class="text-base font-bold text-gray-900 dark:text-white">Settle Loan</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Mark <span class="font-semibold text-gray-800 dark:text-white">{{ settleConfirm.name }}</span> as settled?
+                    The remaining <span class="font-semibold text-gray-800 dark:text-white">{{ fmt(settleConfirm.remaining) }}</span> will be written off with no transaction recorded.
+                </p>
+                <div class="flex gap-2 pt-1">
+                    <button
+                        class="flex-1 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                        @click="settleConfirm = null"
+                    >Cancel</button>
+                    <button
+                        class="flex-1 py-2 rounded-xl text-sm font-medium text-white bg-coin-primary hover:bg-coin-primary/90 transition-colors"
+                        @click="submitSettle"
+                    >Confirm</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Withdraw Modal -->
+        <div v-if="withdrawState" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" @click.self="withdrawState = null">
+            <div class="bg-white dark:bg-coin-dark-card rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-xl">
+                <h2 class="text-base font-bold text-gray-900 dark:text-white">Withdraw Savings</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Withdraw <span class="font-semibold text-gray-800 dark:text-white">{{ fmt(withdrawState.item.total_saved) }}</span>
+                    from <span class="font-semibold text-gray-800 dark:text-white">{{ withdrawState.item.name }}</span> as income.
+                </p>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Income Category</label>
+                    <select
+                        v-model="withdrawState.incomeCategoryId"
+                        class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coin-primary"
+                    >
+                        <option :value="null" disabled>Select a category</option>
+                        <option v-for="cat in incomes" :key="cat.category_id" :value="cat.category_id">{{ cat.name }}</option>
+                    </select>
+                </div>
+                <div class="flex gap-2 pt-1">
+                    <button
+                        class="flex-1 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                        @click="withdrawState = null"
+                    >Cancel</button>
+                    <button
+                        class="flex-1 py-2 rounded-xl text-sm font-medium text-white bg-coin-primary hover:bg-coin-primary/90 transition-colors disabled:opacity-50"
+                        :disabled="!withdrawState.incomeCategoryId"
+                        @click="submitWithdraw"
+                    >Confirm</button>
+                </div>
+            </div>
         </div>
     </AppLayout>
 </template>
