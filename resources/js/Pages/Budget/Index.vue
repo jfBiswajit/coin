@@ -42,17 +42,27 @@ onMounted(() => {
 
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-const activeSection = ref<'expense' | 'loan' | 'saving' | 'income'>('expense');
+const validTabs = ['expense', 'loan', 'saving', 'income'] as const;
+type Tab = typeof validTabs[number];
+const urlTab = new URLSearchParams(window.location.search).get('tab');
+const activeSection = ref<Tab>(validTabs.includes(urlTab as Tab) ? (urlTab as Tab) : 'expense');
+
+const setTab = (tab: Tab) => {
+    activeSection.value = tab;
+    const params = new URLSearchParams(window.location.search);
+    params.set('tab', tab);
+    window.history.replaceState(window.history.state, '', `?${params.toString()}`);
+};
 
 const prevMonth = () => {
     let m = props.month - 1, y = props.year;
     if (m < 1) { m = 12; y--; }
-    router.get('/budget', { month: m, year: y });
+    router.get('/budget', { month: m, year: y, tab: activeSection.value });
 };
 const nextMonth = () => {
     let m = props.month + 1, y = props.year;
     if (m > 12) { m = 1; y++; }
-    router.get('/budget', { month: m, year: y });
+    router.get('/budget', { month: m, year: y, tab: activeSection.value });
 };
 
 const fmt = (v: number) => `৳${new Intl.NumberFormat('en', { minimumFractionDigits: 2 }).format(v)}`;
@@ -168,7 +178,7 @@ const submitWithdraw = () => {
                     :class="activeSection === 'expense'
                         ? 'bg-white dark:bg-coin-dark-card text-gray-900 dark:text-white shadow-sm'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
-                    @click="activeSection = 'expense'"
+                    @click="setTab('expense')"
                 >
                     Expense
                     <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
@@ -180,7 +190,7 @@ const submitWithdraw = () => {
                     :class="activeSection === 'income'
                         ? 'bg-white dark:bg-coin-dark-card text-gray-900 dark:text-white shadow-sm'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
-                    @click="activeSection = 'income'"
+                    @click="setTab('income')"
                 >
                     Income
                     <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
@@ -192,7 +202,7 @@ const submitWithdraw = () => {
                     :class="activeSection === 'saving'
                         ? 'bg-white dark:bg-coin-dark-card text-gray-900 dark:text-white shadow-sm'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
-                    @click="activeSection = 'saving'"
+                    @click="setTab('saving')"
                 >
                     Saving
                     <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
@@ -204,7 +214,7 @@ const submitWithdraw = () => {
                     :class="activeSection === 'loan'
                         ? 'bg-white dark:bg-coin-dark-card text-gray-900 dark:text-white shadow-sm'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
-                    @click="activeSection = 'loan'"
+                    @click="setTab('loan')"
                 >
                     Loan
                     <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
