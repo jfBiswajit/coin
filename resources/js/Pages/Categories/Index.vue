@@ -48,7 +48,7 @@ const editForm = useForm({
 
 const listed = computed(() => props.categories.filter(c => c.type === activeTab.value));
 
-const presetColors = ['#F97316', '#FACC15', '#22C55E', '#14B8A6', '#06B6D4', '#3B82F6', '#6366F1', '#8B5CF6', '#D946EF', '#64748B'];
+const presetColors = ['#BE185D', '#9333EA', '#7C3AED', '#4F46E5', '#0369A1', '#0E7490', '#0F766E', '#166534', '#92400E', '#6B21A8'];
 
 const fmt = (v: number) => '৳' + new Intl.NumberFormat('en', { minimumFractionDigits: 2 }).format(v);
 const randomColor = () => presetColors[Math.floor(Math.random() * presetColors.length)];
