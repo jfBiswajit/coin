@@ -322,15 +322,20 @@ const confirmDelete = () => {
             </div>
 
 
-            <div v-if="transactions.last_page > 1" class="flex justify-center gap-2 flex-wrap">
+            <div v-if="transactions.last_page > 1" class="flex items-center justify-center gap-2 flex-wrap">
                 <button
-                    v-for="link in transactions.links"
+                    v-for="(link, i) in transactions.links"
                     :key="link.label"
                     :disabled="!link.url"
-                    class="px-3 py-2 rounded-lg text-sm transition-all disabled:opacity-40"
-                    :class="link.active
-                        ? 'bg-coin-primary text-white'
-                        : 'bg-white dark:bg-coin-dark-card text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'"
+                    class="flex items-center justify-center rounded-full text-sm transition-all disabled:opacity-40"
+                    :class="[
+                        i === 0 || i === transactions.links.length - 1
+                            ? 'px-4 h-9'
+                            : 'w-9 h-9',
+                        link.active
+                            ? 'bg-coin-primary text-white'
+                            : 'bg-white dark:bg-coin-dark-card text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
+                    ]"
                     v-html="link.label"
                     @click="link.url && router.visit(link.url)"
                 />
