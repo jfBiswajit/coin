@@ -12,6 +12,7 @@ interface OfflineTransaction {
     type: 'income' | 'expense' | 'saving' | 'loan';
     title: string;
     transacted_at: string;
+    is_credit?: boolean;
 }
 
 async function getDB() {

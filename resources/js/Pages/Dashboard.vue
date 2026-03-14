@@ -12,6 +12,8 @@ type TxType = 'income' | 'expense' | 'loan' | 'saving';
 
 const props = defineProps<{
     balance: number;
+    cashInHand: number;
+    totalCreditExpense: number;
     loanOutstanding: number;
     totalSaved: number;
     incomeThisMonth: number;
@@ -127,6 +129,16 @@ const formatDate = (dt: string) => {
                     <p class="text-4xl sm:text-5xl font-black text-white tracking-tight">
                         {{ balance < 0 ? '−' : '' }}{{ fmt(balance) }}
                     </p>
+                    <div v-if="totalCreditExpense > 0"
+                         class="mt-4 inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/15 transition-all"
+                         @click="router.get('/transactions', { type: 'expense', is_credit: 1 })">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span class="text-xs font-semibold uppercase tracking-wider text-white/60">Cash in Hand</span>
+                        </div>
+                        <span class="text-sm font-bold text-white">{{ cashInHand < 0 ? '−' : '' }}{{ fmt(cashInHand) }}</span>
+                        <span class="text-[10px] text-white/40">{{ fmt(totalCreditExpense) }} on credit →</span>
+                    </div>
                 </div>
             </div>
 

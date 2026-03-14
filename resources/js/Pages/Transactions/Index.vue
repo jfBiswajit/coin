@@ -24,7 +24,7 @@ import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts';
 type TxType = 'expense' | 'income' | 'saving' | 'loan';
 
 type Transaction = {
-    id: number; amount: number; type: TxType; title: string; transacted_at: string;
+    id: number; amount: number; type: TxType; is_credit: boolean; title: string; transacted_at: string;
     category: { id: number; name: string; color: string; icon: string };
 };
 
@@ -36,7 +36,7 @@ const props = defineProps<{
         last_page: number;
     };
     categories: Array<{ id: number; name: string; type: TxType; color: string }>;
-    filters: { month: number; year: number; type?: string; category_id?: string; date?: string };
+    filters: { month: number; year: number; type?: string; category_id?: string; date?: string; is_credit?: boolean | null };
     typeCounts: { expense: number; income: number; saving: number; loan: number };
 }>();
 
@@ -64,6 +64,8 @@ useKeyboardShortcuts({
     l: () => { activeTab.value = 'loan'; categoryId.value = ''; },
 });
 
+const isCreditFilter = ref<boolean | null>(props.filters.is_credit ?? null);
+
 const applyFilters = () => {
     const [year, month] = monthYear.value.split('-');
     router.get('/transactions', {
@@ -71,6 +73,7 @@ const applyFilters = () => {
         year: Number(year),
         type: activeTab.value,
         ...(categoryId.value ? { category_id: categoryId.value } : {}),
+        ...(isCreditFilter.value !== null ? { is_credit: isCreditFilter.value ? 1 : 0 } : {}),
     }, { preserveScroll: true, preserveState: true, replace: true });
 };
 
@@ -87,7 +90,7 @@ const formattedDateFilter = computed(() => {
     return new Date(props.filters.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 });
 
-watch([monthYear, activeTab, categoryId], applyFilters);
+watch([monthYear, activeTab, categoryId, isCreditFilter], applyFilters);
 
 const showAdd = ref(false);
 const editTarget = ref<Transaction | null>(null);
@@ -109,6 +112,7 @@ const form = useForm({
     type: 'expense' as TxType,
     transacted_at: todayDate(),
     title: '',
+    is_credit: false,
 });
 
 const editForm = useForm({
@@ -117,6 +121,7 @@ const editForm = useForm({
     type: 'expense' as TxType,
     transacted_at: '',
     title: '',
+    is_credit: false,
 });
 
 const groupedTransactions = computed(() => {
@@ -176,6 +181,7 @@ const openAdd = () => {
     form.type = activeTab.value;
     form.transacted_at = todayDate();
     form.title = '';
+    form.is_credit = false;
     form.clearErrors();
     showAdd.value = true;
 };
@@ -187,6 +193,7 @@ const openEdit = (t: Transaction) => {
     editForm.type = t.type;
     editForm.transacted_at = t.transacted_at;
     editForm.title = t.title;
+    editForm.is_credit = t.is_credit;
     confirmingDelete.value = false;
 };
 
@@ -278,10 +285,14 @@ const confirmDelete = () => {
                 placeholder="All categories"
             />
 
-            <div v-if="formattedDateFilter" class="flex items-center gap-2">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-violet-500/15 text-violet-400 border border-violet-500/20">
+            <div v-if="formattedDateFilter || isCreditFilter !== null" class="flex items-center gap-2 flex-wrap">
+                <span v-if="formattedDateFilter" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-violet-500/15 text-violet-400 border border-violet-500/20">
                     {{ formattedDateFilter }}
                     <button type="button" class="hover:text-white transition-colors" @click="clearDateFilter">&times;</button>
+                </span>
+                <span v-if="isCreditFilter !== null" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-violet-500/15 text-violet-400 border border-violet-500/20">
+                    Credit Card
+                    <button type="button" class="hover:text-white transition-colors" @click="isCreditFilter = null">&times;</button>
                 </span>
             </div>
 
@@ -366,18 +377,29 @@ const confirmDelete = () => {
                     <button type="button"
                         class="py-2 text-xs font-medium transition-all"
                         :class="form.type === 'income' ? 'bg-emerald-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
-                        @click="form.type = 'income'; form.category_id = ''"
+                        @click="form.type = 'income'; form.category_id = ''; form.is_credit = false"
                     >Income</button>
                     <button type="button"
                         class="py-2 text-xs font-medium transition-all"
                         :class="form.type === 'saving' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
-                        @click="form.type = 'saving'; form.category_id = ''"
+                        @click="form.type = 'saving'; form.category_id = ''; form.is_credit = false"
                     >Saving</button>
                     <button type="button"
                         class="py-2 text-xs font-medium transition-all"
                         :class="form.type === 'loan' ? 'bg-orange-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
-                        @click="form.type = 'loan'; form.category_id = ''"
+                        @click="form.type = 'loan'; form.category_id = ''; form.is_credit = false"
                     >Loan</button>
+                </div>
+
+                <div v-if="form.type === 'expense'" class="flex items-center justify-between py-1">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Credit Card</span>
+                    <button type="button"
+                        class="relative w-10 h-5 rounded-full transition-colors"
+                        :class="form.is_credit ? 'bg-coin-primary' : 'bg-gray-300 dark:bg-white/20'"
+                        @click="form.is_credit = !form.is_credit">
+                        <span class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                            :class="form.is_credit ? 'translate-x-5' : ''" />
+                    </button>
                 </div>
 
                 <div>
@@ -442,18 +464,29 @@ const confirmDelete = () => {
                     <button type="button"
                         class="py-2 text-xs font-medium transition-all"
                         :class="editForm.type === 'income' ? 'bg-emerald-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
-                        @click="editForm.type = 'income'; editForm.category_id = ''"
+                        @click="editForm.type = 'income'; editForm.category_id = ''; editForm.is_credit = false"
                     >Income</button>
                     <button type="button"
                         class="py-2 text-xs font-medium transition-all"
                         :class="editForm.type === 'saving' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
-                        @click="editForm.type = 'saving'; editForm.category_id = ''"
+                        @click="editForm.type = 'saving'; editForm.category_id = ''; editForm.is_credit = false"
                     >Saving</button>
                     <button type="button"
                         class="py-2 text-xs font-medium transition-all"
                         :class="editForm.type === 'loan' ? 'bg-orange-500 text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400'"
-                        @click="editForm.type = 'loan'; editForm.category_id = ''"
+                        @click="editForm.type = 'loan'; editForm.category_id = ''; editForm.is_credit = false"
                     >Loan</button>
+                </div>
+
+                <div v-if="editForm.type === 'expense'" class="flex items-center justify-between py-1">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Credit Card</span>
+                    <button type="button"
+                        class="relative w-10 h-5 rounded-full transition-colors"
+                        :class="editForm.is_credit ? 'bg-coin-primary' : 'bg-gray-300 dark:bg-white/20'"
+                        @click="editForm.is_credit = !editForm.is_credit">
+                        <span class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                            :class="editForm.is_credit ? 'translate-x-5' : ''" />
+                    </button>
                 </div>
 
                 <div>

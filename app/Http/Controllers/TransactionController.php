@@ -38,10 +38,15 @@ class TransactionController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
+        if ($request->has('is_credit')) {
+            $query->where('is_credit', (bool) $request->is_credit);
+        }
+
         $transactions = $query->orderByDesc('transacted_at')->orderByDesc('created_at')->paginate(20)->through(fn($t) => [
             'id' => $t->id,
             'amount' => (float) $t->amount,
             'type' => $t->type,
+            'is_credit' => (bool) $t->is_credit,
             'title' => $t->title,
             'transacted_at' => $t->transacted_at->format('Y-m-d'),
             'category' => ['id' => $t->category->id, 'name' => $t->category->name, 'color' => $t->category->color, 'icon' => $t->category->icon],
@@ -64,7 +69,7 @@ class TransactionController extends Controller
         return Inertia::render('Transactions/Index', [
             'transactions' => $transactions,
             'categories' => $categories,
-            'filters' => ['month' => $month, 'year' => $year, 'type' => $type, 'category_id' => $request->category_id, 'date' => $date],
+            'filters' => ['month' => $month, 'year' => $year, 'type' => $type, 'category_id' => $request->category_id, 'date' => $date, 'is_credit' => $request->has('is_credit') ? (bool) $request->is_credit : null],
             'typeCounts' => [
                 'expense' => $typeCounts->get('expense', 0),
                 'income' => $typeCounts->get('income', 0),
@@ -89,6 +94,7 @@ class TransactionController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'title' => 'required|string|max:255',
             'transacted_at' => 'required|date',
+            'is_credit' => 'sometimes|boolean',
         ]);
 
         $category = $request->user()->categories()->findOrFail($data['category_id']);
@@ -105,6 +111,7 @@ class TransactionController extends Controller
             'category_id' => $data['category_id'],
             'amount' => $data['amount'],
             'type' => $category->type,
+            'is_credit' => $category->type === 'expense' && ($data['is_credit'] ?? false),
             'title' => $data['title'],
             'transacted_at' => $data['transacted_at'],
         ]);
@@ -121,6 +128,7 @@ class TransactionController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'title' => 'required|string|max:255',
             'transacted_at' => 'required|date',
+            'is_credit' => 'sometimes|boolean',
         ]);
 
         $category = $request->user()->categories()->findOrFail($data['category_id']);
@@ -129,6 +137,7 @@ class TransactionController extends Controller
             'category_id' => $data['category_id'],
             'amount' => $data['amount'],
             'type' => $category->type,
+            'is_credit' => $category->type === 'expense' && ($data['is_credit'] ?? false),
             'title' => $data['title'],
             'transacted_at' => $data['transacted_at'],
         ]);

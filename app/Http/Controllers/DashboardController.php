@@ -23,6 +23,13 @@ class DashboardController extends Controller
                  - (float) ($allTime['loan'] ?? 0)
                  - (float) ($allTime['saving'] ?? 0);
 
+        $totalCreditExpense = (float) $user->transactions()
+            ->where('type', 'expense')
+            ->where('is_credit', true)
+            ->sum('amount');
+
+        $cashInHand = $balance + $totalCreditExpense;
+
         $loanCategories = $user->categories()->where('type', 'loan')->get();
 
         $loanPaidTotal = $user->transactions()
@@ -91,6 +98,8 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'balance' => $balance,
+            'cashInHand' => $cashInHand,
+            'totalCreditExpense' => $totalCreditExpense,
             'loanOutstanding' => $totalLoanOutstanding,
             'totalSaved' => $totalSaved,
             'incomeThisMonth' => $incomeThisMonth,
