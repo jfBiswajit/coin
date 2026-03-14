@@ -122,7 +122,7 @@ const formatDate = (dt: string) => {
                 <div class="relative">
                     <div class="flex items-center justify-between mb-4">
                         <p class="text-[11px] font-semibold uppercase tracking-widest text-white/60">Current Balance</p>
-                        <span class="bg-white/15 backdrop-blur-sm text-white text-[11px] font-medium px-3 py-1 rounded-full">
+                        <span class="bg-white/15 backdrop-blur-sm text-white text-sm font-semibold px-5 py-2 rounded-full">
                             {{ monthLabel }}
                         </span>
                     </div>
@@ -137,7 +137,7 @@ const formatDate = (dt: string) => {
                             <span class="text-xs font-semibold uppercase tracking-wider text-white/60">Cash in Hand</span>
                         </div>
                         <span class="text-sm font-bold text-white">{{ cashInHand < 0 ? '−' : '' }}{{ fmt(cashInHand) }}</span>
-                        <span class="text-[10px] text-white/40">{{ fmt(totalCreditExpense) }} on credit →</span>
+                        <span class="text-[10px] text-amber-400">{{ fmt(totalCreditExpense) }} on credit →</span>
                     </div>
                 </div>
             </div>
