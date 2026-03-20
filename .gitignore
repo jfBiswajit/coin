@@ -4,6 +4,7 @@
 .mcp.json
 boost.json
 NOTES.md
+TODO.md
 .env
 .env.backup
 .env.production
