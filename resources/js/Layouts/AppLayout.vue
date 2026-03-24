@@ -45,8 +45,8 @@ useKeyboardShortcuts({
                         <img src="/favicon.svg" alt="Coin" class="w-9 h-9" />
                     </div>
                     <div class="flex flex-col leading-none">
-                        <span class="text-lg font-extrabold tracking-widest text-[#FFD700]">COIN</span>
-                        <span class="text-[10px] font-medium text-gray-500 tracking-wider uppercase mt-0.5">Personal Finance</span>
+                        <span class="text-lg font-extrabold tracking-widest text-amber-300">COIN</span>
+                        <span class="text-[10px] font-semibold text-gray-400 tracking-wider uppercase mt-0.5">Personal Finance</span>
                     </div>
                 </div>
             </div>
@@ -95,7 +95,7 @@ useKeyboardShortcuts({
                     <div class="relative flex-shrink-0">
                         <img src="/favicon.svg" alt="Coin" class="w-8 h-8" />
                     </div>
-                    <span class="text-base font-extrabold tracking-widest text-[#FFD700]">COIN</span>
+                    <span class="text-base font-extrabold tracking-widest text-amber-300">COIN</span>
                 </div>
             </header>
 
