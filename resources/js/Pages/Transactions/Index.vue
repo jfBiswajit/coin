@@ -4,7 +4,7 @@ import DatePicker from '@/Components/DatePicker.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { Plus } from 'lucide-vue-next';
 import { ref, watch, computed } from 'vue';
 
 const generateUUID = (): string => {
@@ -38,20 +38,6 @@ const props = defineProps<{
     typeCounts: { expense: number; income: number; saving: number; loan: number };
 }>();
 
-const monthYear = ref(`${props.filters.year}-${String(props.filters.month).padStart(2, '0')}`);
-
-const displayMonthYear = computed(() => {
-    const [year, month] = monthYear.value.split('-');
-    return new Date(Number(year), Number(month) - 1, 1)
-        .toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-});
-
-const shiftMonth = (delta: number) => {
-    const [year, month] = monthYear.value.split('-').map(Number);
-    const d = new Date(year, month - 1 + delta, 1);
-    monthYear.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-};
-
 const activeTab = ref<TxType>((props.filters.type as TxType) ?? 'expense');
 const categoryId = ref(props.filters.category_id ?? '');
 
@@ -65,10 +51,9 @@ useKeyboardShortcuts({
 const isCreditFilter = ref<boolean | null>(props.filters.is_credit ?? null);
 
 const applyFilters = () => {
-    const [year, month] = monthYear.value.split('-');
     router.get('/transactions', {
-        month: Number(month),
-        year: Number(year),
+        month: props.filters.month,
+        year: props.filters.year,
         type: activeTab.value,
         ...(categoryId.value ? { category_id: categoryId.value } : {}),
         ...(isCreditFilter.value !== null ? { is_credit: isCreditFilter.value ? 1 : 0 } : {}),
@@ -88,7 +73,7 @@ const formattedDateFilter = computed(() => {
     return new Date(props.filters.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 });
 
-watch([monthYear, activeTab, categoryId, isCreditFilter], applyFilters);
+watch([activeTab, categoryId, isCreditFilter], applyFilters);
 
 const showAdd = ref(false);
 const editTarget = ref<Transaction | null>(null);
@@ -213,22 +198,9 @@ const confirmDelete = () => {
     <AppLayout>
         <div class="space-y-5">
 
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">Transactions</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Your income & expenses</p>
-                </div>
-                <div class="flex items-center gap-1 bg-white/60 dark:bg-white/[0.05] rounded-xl border border-white/60 dark:border-white/10 px-1 py-1">
-                    <button class="p-1.5 rounded-lg hover:bg-white/80 dark:hover:bg-white/10 transition-all" @click="shiftMonth(-1)">
-                        <ChevronLeft class="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                    </button>
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[110px] sm:min-w-[130px] text-center select-none">
-                        {{ displayMonthYear }}
-                    </span>
-                    <button class="p-1.5 rounded-lg hover:bg-white/80 dark:hover:bg-white/10 transition-all" @click="shiftMonth(1)">
-                        <ChevronRight class="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                    </button>
-                </div>
+            <div>
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white">Transactions</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Your income & expenses</p>
             </div>
 
 

@@ -5,7 +5,6 @@ import {
     LayoutDashboard,
     LogOut,
     PiggyBank,
-    Tag,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import Toast from '@/Components/Toast.vue';
@@ -21,7 +20,6 @@ const navItems = [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, name: 'dashboard', mobileHidden: false },
     { label: 'Transactions', href: '/transactions', icon: CircleDollarSign, name: 'transactions', mobileHidden: false },
     { label: 'Budget', href: '/budget', icon: PiggyBank, name: 'budget', mobileHidden: false },
-    { label: 'Categories', href: '/categories', icon: Tag, name: 'categories', mobileHidden: false },
 ];
 
 const mobileNavItems = navItems.filter(item => !item.mobileHidden);
@@ -32,7 +30,6 @@ useKeyboardShortcuts({
     d: () => router.visit('/dashboard'),
     t: () => router.visit('/transactions'),
     b: () => router.visit('/budget'),
-    c: () => router.visit('/categories'),
 });
 </script>
 

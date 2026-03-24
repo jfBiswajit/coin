@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import CategoryCreateModal from '@/Components/CategoryCreateModal.vue';
+import CategoryEditModal, { type CategoryForEdit } from '@/Components/CategoryEditModal.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts';
-import { ChevronLeft, ChevronRight, MoreVertical } from 'lucide-vue-next';
+import { MoreVertical, Plus } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
 type ExpenseItem = {
@@ -41,8 +43,6 @@ onMounted(() => {
     document.addEventListener('click', () => { openMenu.value = null; });
 });
 
-const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
 const validTabs = ['expense', 'loan', 'saving', 'income'] as const;
 type Tab = typeof validTabs[number];
 const urlTab = new URLSearchParams(window.location.search).get('tab');
@@ -61,17 +61,6 @@ useKeyboardShortcuts({
     s: () => setTab('saving'),
     l: () => setTab('loan'),
 });
-
-const prevMonth = () => {
-    let m = props.month - 1, y = props.year;
-    if (m < 1) { m = 12; y--; }
-    router.get('/budget', { month: m, year: y, tab: activeSection.value });
-};
-const nextMonth = () => {
-    let m = props.month + 1, y = props.year;
-    if (m > 12) { m = 1; y++; }
-    router.get('/budget', { month: m, year: y, tab: activeSection.value });
-};
 
 const fmt = (v: number) => `৳${new Intl.NumberFormat('en', { minimumFractionDigits: 2 }).format(v)}`;
 
@@ -154,6 +143,24 @@ const submitWithdraw = () => {
         { onSuccess: () => { withdrawState.value = null; } }
     );
 };
+
+const showCreateModal = ref(false);
+const editCategory = ref<CategoryForEdit | null>(null);
+
+const openEditFromBudget = (item: ExpenseItem | IncomeItem | LoanItem | SavingItem, type: Tab) => {
+    editCategory.value = {
+        id: item.category_id,
+        name: item.name,
+        type: type as CategoryForEdit['type'],
+        color: item.color,
+        icon: item.icon,
+        budget_amount: 'budget' in item ? (item.budget ?? '') : '',
+        loan_amount: 'loan_amount' in item ? item.loan_amount : null,
+        emi_amount: 'emi_amount' in item ? item.emi_amount : null,
+        monthly_amount: 'monthly_amount' in item ? item.monthly_amount : null,
+        target_amount: 'target_amount' in item ? item.target_amount : null,
+    };
+};
 </script>
 
 <template>
@@ -166,16 +173,10 @@ const submitWithdraw = () => {
                     <h1 class="text-xl font-bold text-gray-900 dark:text-white">Budget</h1>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Track your spending goals</p>
                 </div>
-                <div class="flex items-center gap-1 bg-white/60 dark:bg-white/[0.05] rounded-xl border border-white/60 dark:border-white/10 px-1 py-1">
-                    <button class="p-1.5 rounded-lg hover:bg-white/80 dark:hover:bg-white/10 transition-all" @click="prevMonth">
-                        <ChevronLeft class="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                    </button>
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[110px] sm:min-w-[130px] text-center">
-                        {{ monthNames[month - 1] }} {{ year }}
-                    </span>
-                    <button class="p-1.5 rounded-lg hover:bg-white/80 dark:hover:bg-white/10 transition-all" @click="nextMonth">
-                        <ChevronRight class="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                    </button>
+                <div class="flex items-center gap-2">
+                <button class="btn-primary text-sm flex items-center gap-1.5" @click="showCreateModal = true">
+                    <Plus class="w-4 h-4" /> <span class="hidden sm:inline">New Category</span><span class="sm:hidden">Add</span>
+                </button>
                 </div>
             </div>
 
@@ -271,6 +272,20 @@ const submitWithdraw = () => {
                             <span class="text-sm font-bold shrink-0" :class="isOver(item) ? 'text-red-500' : 'text-emerald-500'">
                                 {{ item.budget ? fmt(item.budget - item.spent) : fmt(item.spent) }}
                             </span>
+                            <div class="relative shrink-0">
+                                <button
+                                    class="p-1 rounded-lg hover:bg-white/10 transition-colors text-gray-400 dark:text-gray-500"
+                                    @click.stop="toggleMenu(item.category_id, $event)"
+                                >
+                                    <MoreVertical class="w-4 h-4" />
+                                </button>
+                                <div v-if="openMenu === item.category_id" class="absolute right-0 top-7 z-20 bg-white dark:bg-coin-dark-card border border-gray-100 dark:border-white/10 rounded-xl shadow-lg py-1 min-w-[120px]">
+                                    <button
+                                        class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                        @click.stop="openEditFromBudget(item, 'expense'); openMenu = null"
+                                    >Edit</button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
@@ -354,7 +369,7 @@ const submitWithdraw = () => {
                                 <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
                             </div>
                             <span class="text-sm font-bold shrink-0" :class="item.remaining === 0 || item.is_settled ? 'text-emerald-500' : 'text-orange-500'">{{ fmt(item.remaining) }}</span>
-                            <div v-if="item.remaining > 0 && !item.is_settled" class="relative shrink-0">
+                            <div class="relative shrink-0">
                                 <button
                                     class="p-1 rounded-lg hover:bg-white/10 transition-colors text-gray-400 dark:text-gray-500"
                                     @click.stop="toggleMenu(item.category_id, $event)"
@@ -363,6 +378,11 @@ const submitWithdraw = () => {
                                 </button>
                                 <div v-if="openMenu === item.category_id" class="absolute right-0 top-7 z-20 bg-white dark:bg-coin-dark-card border border-gray-100 dark:border-white/10 rounded-xl shadow-lg py-1 min-w-[120px]">
                                     <button
+                                        class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                        @click.stop="openEditFromBudget(item, 'loan'); openMenu = null"
+                                    >Edit</button>
+                                    <button
+                                        v-if="item.remaining > 0 && !item.is_settled"
                                         class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                                         @click.stop="settleConfirm = item; openMenu = null"
                                     >Settle</button>
@@ -476,7 +496,7 @@ const submitWithdraw = () => {
                                 <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
                             </div>
                             <span class="text-sm font-bold shrink-0" :class="!item.target_amount || isCompleted(item) ? 'text-emerald-500' : 'text-blue-500'">{{ fmt(item.total_saved) }}</span>
-                            <div v-if="item.total_saved > 0 && !item.is_withdrawn" class="relative shrink-0">
+                            <div class="relative shrink-0">
                                 <button
                                     class="p-1 rounded-lg hover:bg-white/10 transition-colors text-gray-400 dark:text-gray-500"
                                     @click.stop="toggleMenu(item.category_id, $event)"
@@ -485,6 +505,11 @@ const submitWithdraw = () => {
                                 </button>
                                 <div v-if="openMenu === item.category_id" class="absolute right-0 top-7 z-20 bg-white dark:bg-coin-dark-card border border-gray-100 dark:border-white/10 rounded-xl shadow-lg py-1 min-w-[120px]">
                                     <button
+                                        class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                        @click.stop="openEditFromBudget(item, 'saving'); openMenu = null"
+                                    >Edit</button>
+                                    <button
+                                        v-if="item.total_saved > 0 && !item.is_withdrawn"
                                         class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                                         @click.stop="openWithdraw(item, $event); openMenu = null"
                                     >Withdraw</button>
@@ -599,6 +624,20 @@ const submitWithdraw = () => {
                             <span class="text-sm font-bold shrink-0" :class="item.monthly_amount === 0 || isIncomeOver(item) ? 'text-emerald-500' : 'text-orange-500'">
                                 {{ item.monthly_amount === 0 ? fmt(item.earned_this_month) : fmt(Math.abs(item.monthly_amount - item.earned_this_month)) }}
                             </span>
+                            <div class="relative shrink-0">
+                                <button
+                                    class="p-1 rounded-lg hover:bg-white/10 transition-colors text-gray-400 dark:text-gray-500"
+                                    @click.stop="toggleMenu(item.category_id, $event)"
+                                >
+                                    <MoreVertical class="w-4 h-4" />
+                                </button>
+                                <div v-if="openMenu === item.category_id" class="absolute right-0 top-7 z-20 bg-white dark:bg-coin-dark-card border border-gray-100 dark:border-white/10 rounded-xl shadow-lg py-1 min-w-[120px]">
+                                    <button
+                                        class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                        @click.stop="openEditFromBudget(item, 'income'); openMenu = null"
+                                    >Edit</button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
@@ -634,6 +673,9 @@ const submitWithdraw = () => {
                 </div>
             </template>
         </div>
+
+        <CategoryCreateModal :show="showCreateModal" :default-type="activeSection" @close="showCreateModal = false" />
+        <CategoryEditModal :category="editCategory" @close="editCategory = null" />
 
         <!-- Settle Loan Modal -->
         <div v-if="settleConfirm" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" @click.self="settleConfirm = null">
