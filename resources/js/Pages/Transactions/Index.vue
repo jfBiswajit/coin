@@ -134,6 +134,8 @@ const formatDateHeader = (dateStr: string) => {
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 };
 
+const fmt = (n: number) => '৳' + new Intl.NumberFormat('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+
 const amountColor = (type: TxType) => {
     if (type === 'income') return 'text-emerald-600 dark:text-emerald-400';
     if (type === 'saving') return 'text-blue-600 dark:text-blue-400';
@@ -252,6 +254,9 @@ const confirmDelete = () => {
                             {{ formatDateHeader(date) }}
                         </span>
                         <div class="flex-1 h-px bg-gray-200 dark:bg-white/5"></div>
+                        <span class="text-[11px] font-bold tracking-widest uppercase text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                            {{ fmt(items.reduce((s, t) => s + t.amount, 0)) }}
+                        </span>
                     </div>
                     <div class="space-y-2">
                         <div
