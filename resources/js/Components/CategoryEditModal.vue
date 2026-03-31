@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import AppModal from '@/Components/AppModal.vue';
+import ColorPickerInput from '@/Components/ColorPickerInput.vue';
+import { defaultColor } from '@/constants/colors';
 import { router, useForm } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
@@ -21,15 +23,11 @@ export type CategoryForEdit = {
 const props = defineProps<{ category: CategoryForEdit | null }>();
 const emit = defineEmits<{ close: [] }>();
 
-const presetColors = [
-    '#F43F5E', '#EC4899', '#D946EF', '#A855F7', '#7C3AED', '#6366F1', '#06B6D4', '#0D9488',
-    '#BE185D', '#9333EA', '#4F46E5', '#0891B2', '#0E7490', '#0F766E', '#F97316', '#64748B',
-];
 
 const confirmingDelete = ref(false);
 
 const form = useForm({
-    name: '', color: '#7C3AED', icon: 'circle',
+    name: '', color: defaultColor, icon: 'circle',
     budget_amount: '' as string | number,
     loan_amount: '' as string | number,
     emi_amount: '' as string | number,
@@ -146,17 +144,7 @@ const confirmDelete = () => {
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Color</label>
-                <div class="grid grid-cols-8 gap-2">
-                    <button
-                        v-for="c in presetColors"
-                        :key="c"
-                        type="button"
-                        class="w-8 h-8 rounded-lg transition-all"
-                        :style="{ backgroundColor: c }"
-                        :class="form.color === c ? 'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-coin-dark-card ring-gray-500 scale-110' : 'hover:scale-110 opacity-80 hover:opacity-100'"
-                        @click="form.color = c"
-                    />
-                </div>
+                <ColorPickerInput v-model="form.color" />
             </div>
 
             <button type="submit" class="btn-primary w-full py-2.5" :disabled="form.processing">
