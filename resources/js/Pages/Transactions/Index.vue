@@ -34,12 +34,13 @@ const props = defineProps<{
         last_page: number;
     };
     categories: Array<{ id: number; name: string; type: TxType; color: string }>;
-    filters: { month: number; year: number; type?: string; category_id?: string; date?: string; is_credit?: boolean | null };
+    filters: { month: number; year: number; type?: string; category_id?: string; date?: string; is_credit?: boolean | null; search?: string };
     typeCounts: { expense: number; income: number; saving: number; loan: number };
 }>();
 
 const activeTab = ref<TxType>((props.filters.type as TxType) ?? 'expense');
 const categoryId = ref(props.filters.category_id ?? '');
+const searchQuery = ref(props.filters.search ?? '');
 
 useKeyboardShortcuts({
     e: () => { activeTab.value = 'expense'; categoryId.value = ''; },
@@ -57,6 +58,7 @@ const applyFilters = () => {
         type: activeTab.value,
         ...(categoryId.value ? { category_id: categoryId.value } : {}),
         ...(isCreditFilter.value !== null ? { is_credit: isCreditFilter.value ? 1 : 0 } : {}),
+        ...(searchQuery.value ? { search: searchQuery.value } : {}),
     }, { preserveScroll: true, preserveState: true, replace: true });
 };
 
@@ -74,6 +76,12 @@ const formattedDateFilter = computed(() => {
 });
 
 watch([activeTab, categoryId, isCreditFilter], applyFilters);
+
+let searchDebounce: ReturnType<typeof setTimeout> | null = null;
+watch(searchQuery, () => {
+    if (searchDebounce) clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(applyFilters, 400);
+});
 
 const showAdd = ref(false);
 const editTarget = ref<Transaction | null>(null);
@@ -231,12 +239,31 @@ const confirmDelete = () => {
             </div>
 
 
-            <SearchableSelect
-                v-model="categoryId"
-                :options="categories.filter(c => c.type === activeTab).map(c => ({ value: String(c.id), label: c.name }))"
-                all-label="All categories"
-                placeholder="All categories"
-            />
+            <div class="flex gap-2">
+                <div class="flex-1">
+                    <SearchableSelect
+                        v-model="categoryId"
+                        :options="categories.filter(c => c.type === activeTab).map(c => ({ value: String(c.id), label: c.name }))"
+                        all-label="All categories"
+                        placeholder="All categories"
+                    />
+                </div>
+
+                <div class="relative flex-1">
+                    <input
+                        v-model="searchQuery"
+                        type="text"
+                        placeholder="Search transactions…"
+                        class="input pr-8"
+                    />
+                    <button
+                        v-if="searchQuery"
+                        type="button"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors"
+                        @click="searchQuery = ''"
+                    >&times;</button>
+                </div>
+            </div>
 
             <div v-if="formattedDateFilter || isCreditFilter !== null" class="flex items-center gap-2 flex-wrap">
                 <span v-if="formattedDateFilter" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-violet-500/15 text-violet-400 border border-violet-500/20">

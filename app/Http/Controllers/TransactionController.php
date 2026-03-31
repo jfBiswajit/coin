@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -15,7 +16,7 @@ class TransactionController extends Controller
         $date = $request->get('date');
 
         if ($date) {
-            $dateObj = \Carbon\Carbon::parse($date);
+            $dateObj = Carbon::parse($date);
             $month = $dateObj->month;
             $year = $dateObj->year;
         } else {
@@ -42,7 +43,11 @@ class TransactionController extends Controller
             $query->where('is_credit', (bool) $request->is_credit);
         }
 
-        $transactions = $query->orderByDesc('transacted_at')->orderBy('id')->paginate(20)->withQueryString()->through(fn($t) => [
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%'.$request->search.'%');
+        }
+
+        $transactions = $query->orderByDesc('transacted_at')->orderBy('id')->paginate(20)->withQueryString()->through(fn ($t) => [
             'id' => $t->id,
             'amount' => (float) $t->amount,
             'type' => $t->type,
@@ -69,7 +74,7 @@ class TransactionController extends Controller
         return Inertia::render('Transactions/Index', [
             'transactions' => $transactions,
             'categories' => $categories,
-            'filters' => ['month' => $month, 'year' => $year, 'type' => $type, 'category_id' => $request->category_id, 'date' => $date, 'is_credit' => $request->has('is_credit') ? (bool) $request->is_credit : null],
+            'filters' => ['month' => $month, 'year' => $year, 'type' => $type, 'category_id' => $request->category_id, 'date' => $date, 'is_credit' => $request->has('is_credit') ? (bool) $request->is_credit : null, 'search' => $request->search],
             'typeCounts' => [
                 'expense' => $typeCounts->get('expense', 0),
                 'income' => $typeCounts->get('income', 0),
@@ -186,7 +191,7 @@ class TransactionController extends Controller
             'category_id' => $incomeCategory->id,
             'amount' => $totalSaved,
             'type' => 'income',
-            'title' => 'Withdrawal – ' . $savingCategory->name,
+            'title' => 'Withdrawal – '.$savingCategory->name,
             'transacted_at' => now()->toDateString(),
         ]);
 
@@ -213,18 +218,24 @@ class TransactionController extends Controller
 
         return $categories->filter(function ($cat) use ($loanPaid, $savingTotals) {
             if ($cat->type === 'loan') {
-                if ($cat->settled_at !== null) return false;
+                if ($cat->settled_at !== null) {
+                    return false;
+                }
                 $remaining = (float) $cat->loan_amount - (float) ($loanPaid[$cat->id] ?? 0);
+
                 return $remaining > 0;
             }
             if ($cat->type === 'saving') {
-                if ($cat->withdrawn_at !== null) return false;
+                if ($cat->withdrawn_at !== null) {
+                    return false;
+                }
                 if ($cat->target_amount !== null && (float) $cat->target_amount > 0) {
                     return (float) ($savingTotals[$cat->id] ?? 0) < (float) $cat->target_amount;
                 }
             }
+
             return true;
-        })->map(fn($c) => [
+        })->map(fn ($c) => [
             'id' => $c->id,
             'name' => $c->name,
             'type' => $c->type,
