@@ -21,6 +21,9 @@ const props = defineProps<{
     recent: Array<{ id: number; amount: number; type: TxType; title: string; transacted_at: string; category: { name: string; color: string } }>;
     dailyExpense: number[];
     spendingByCategory: Array<{ name: string; color: string; total: number }>;
+    totalBudget: number;
+    totalIncomeBudget: number;
+    expenseThisMonth: number;
 }>();
 
 const donutData = computed(() => ({
@@ -98,6 +101,18 @@ const spentPct = computed(() =>
         : props.spentThisMonth > 0 ? 100 : 0
 );
 
+const budgetPct = computed(() =>
+    props.totalBudget > 0
+        ? Math.min(100, (props.expenseThisMonth / props.totalBudget) * 100)
+        : props.expenseThisMonth > 0 ? 100 : 0
+);
+
+const incomePct = computed(() =>
+    props.totalIncomeBudget > 0
+        ? Math.min(100, (props.incomeThisMonth / props.totalIncomeBudget) * 100)
+        : 100
+);
+
 const inHand = computed(() => props.incomeThisMonth - props.spentThisMonth);
 
 const shortfall = computed(() => props.moneyNeeded - props.incomeThisMonth);
@@ -136,33 +151,59 @@ const formatDate = (dt: string) => {
 
 
             <!-- Net Balance full width -->
-                <div class="card !p-0 overflow-hidden">
-                    <!-- Balance section -->
-                    <div class="p-5 pb-4">
-                        <div class="flex items-start justify-between">
-                            <div class="space-y-0.5">
-                                <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Net Balance</p>
-                                <p class="text-3xl font-black tracking-tight" :class="balance >= 0 ? 'text-gray-900 dark:text-white' : 'text-red-500'">
-                                    {{ balance < 0 ? '−' : '' }}{{ fmt(balance) }}
-                                </p>
-                            </div>
+            <div class="card !p-0 overflow-hidden">
+                <div class="p-5 pb-4">
+                    <!-- Top row: balance + month stats -->
+                    <div class="flex items-start gap-6">
+                        <!-- Balance -->
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Net Balance</p>
+                            <p class="text-3xl font-black tracking-tight mt-0.5" :class="balance >= 0 ? 'text-gray-900 dark:text-white' : 'text-red-500'">
+                                {{ balance < 0 ? '−' : '' }}{{ fmt(balance) }}
+                            </p>
                         </div>
 
-                        <!-- Balance bar: balance vs this month's expenses -->
-                        <div class="mt-4 space-y-1.5">
-                            <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden flex gap-0.5">
-                                <div class="h-full rounded-full bg-emerald-500 transition-all duration-700 ease-out"
-                                    :style="{ width: ready ? `${Math.min(100, (balance / (balance + spentThisMonth)) * 100)}%` : '0%' }" />
-                                <div class="h-full rounded-full bg-red-400 transition-all duration-700 ease-out"
-                                    :style="{ width: ready ? `${Math.min(100, (spentThisMonth / (balance + spentThisMonth)) * 100)}%` : '0%' }" />
-                            </div>
-                            <div class="flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500">
-                                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>Balance {{ fmt(balance) }}</span>
-                                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-red-400"></span>Spent {{ fmt(spentThisMonth) }}</span>
-                            </div>
+                        <!-- Divider -->
+                        <div class="w-px self-stretch bg-gray-100 dark:bg-white/10 shrink-0"></div>
+
+                        <!-- Income this month -->
+                        <div class="shrink-0 text-right">
+                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Income</p>
+                            <p class="text-xl font-bold mt-0.5"
+                                :class="totalIncomeBudget === 0 || incomePct >= 100 ? 'text-emerald-500' : 'text-amber-400'">
+                                {{ fmt(incomeThisMonth) }}
+                            </p>
+                            <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{{ monthLabel }}</p>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="w-px self-stretch bg-gray-100 dark:bg-white/10 shrink-0"></div>
+
+                        <!-- Spent this month -->
+                        <div class="shrink-0 text-right">
+                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Spent</p>
+                            <p class="text-xl font-bold mt-0.5"
+                                :class="budgetPct >= 100 ? 'text-red-500' : budgetPct >= 80 ? 'text-amber-400' : 'text-gray-900 dark:text-white'">
+                                {{ fmt(expenseThisMonth) }}
+                            </p>
+                            <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">of {{ fmt(totalBudget) }} budget</p>
+                        </div>
+                    </div>
+
+                    <!-- Budget vs Expense bar -->
+                    <div v-if="totalBudget > 0" class="mt-4 space-y-1.5">
+                        <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-700 ease-out"
+                                :class="budgetPct >= 100 ? 'bg-red-500' : budgetPct >= 80 ? 'bg-amber-400' : 'bg-violet-500'"
+                                :style="{ width: ready ? `${budgetPct}%` : '0%' }" />
+                        </div>
+                        <div class="flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500">
+                            <span>{{ Math.round(budgetPct) }}% of budget used</span>
+                            <span>{{ fmt(totalBudget - expenseThisMonth) }} remaining</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
 

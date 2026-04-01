@@ -54,6 +54,7 @@ class DashboardController extends Controller
                         + (float) ($thisMonth['saving'] ?? 0);
 
         $totalBudget = (float) $user->categories()->where('type', 'expense')->sum('monthly_budget');
+        $totalIncomeBudget = (float) $user->categories()->where('type', 'income')->sum('monthly_amount');
 
         $totalEMI = (float) $loanCategories->sum('emi_amount');
 
@@ -108,13 +109,18 @@ class DashboardController extends Controller
             ->sortByDesc('total')
             ->values();
 
+        $expenseThisMonth = (float) ($thisMonth['expense'] ?? 0);
+
         return Inertia::render('Dashboard', [
             'balance' => $balance,
             'loanOutstanding' => $totalLoanOutstanding,
             'totalSaved' => $totalSaved,
             'incomeThisMonth' => $incomeThisMonth,
             'spentThisMonth' => $spentThisMonth,
+            'expenseThisMonth' => $expenseThisMonth,
             'moneyNeeded' => $moneyNeeded,
+            'totalBudget' => $totalBudget,
+            'totalIncomeBudget' => $totalIncomeBudget,
             'monthLabel' => now()->format('F Y'),
             'recent' => $recent,
             'dailyExpense' => $dailyExpense,
