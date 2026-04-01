@@ -166,7 +166,7 @@ const formatDate = (dt: string) => {
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-                <Link href="/budget" class="card !p-5 border-l-[3px] border-l-violet-500 block hover:opacity-80 transition-opacity">
+                <Link href="/budget" class="card !p-5 !bg-white/[0.07] !backdrop-blur-2xl !border-white/[0.14] !shadow-lg border-l-[3px] border-l-violet-500 block hover:opacity-80 transition-opacity">
                     <div class="flex items-center justify-between mb-1">
                         <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1.5"><Wallet class="w-3.5 h-3.5" />Money Needed</p>
                         <span class="text-[9px] font-medium text-gray-300 dark:text-gray-600 uppercase tracking-wider">{{ monthLabel }}</span>
@@ -178,7 +178,7 @@ const formatDate = (dt: string) => {
                     </p>
                 </Link>
 
-                <Link href="/budget?tab=saving" class="card !p-5 border-l-[3px] border-l-blue-500 block hover:opacity-80 transition-opacity">
+                <Link href="/budget?tab=saving" class="card !p-5 !bg-white/[0.07] !backdrop-blur-2xl !border-white/[0.14] !shadow-lg border-l-[3px] border-l-blue-500 block hover:opacity-80 transition-opacity">
                     <div class="flex items-center justify-between mb-1">
                         <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1.5"><PiggyBank class="w-3.5 h-3.5" />Total Saved</p>
                         <span class="text-[9px] font-medium text-gray-300 dark:text-gray-600 uppercase tracking-wider">All time</span>
@@ -190,7 +190,7 @@ const formatDate = (dt: string) => {
                     </p>
                 </Link>
 
-                <Link href="/budget?tab=loan" class="card !p-5 border-l-[3px] border-l-orange-500 block hover:opacity-80 transition-opacity">
+                <Link href="/budget?tab=loan" class="card !p-5 !bg-white/[0.07] !backdrop-blur-2xl !border-white/[0.14] !shadow-lg border-l-[3px] border-l-orange-500 block hover:opacity-80 transition-opacity">
                     <div class="flex items-center justify-between mb-1">
                         <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1.5"><Landmark class="w-3.5 h-3.5" />Loan Outstanding</p>
                         <span class="text-[9px] font-medium text-gray-300 dark:text-gray-600 uppercase tracking-wider">All time</span>
