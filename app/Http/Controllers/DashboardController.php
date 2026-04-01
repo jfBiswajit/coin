@@ -23,15 +23,6 @@ class DashboardController extends Controller
                  - (float) ($allTime['loan'] ?? 0)
                  - (float) ($allTime['saving'] ?? 0);
 
-        $totalCreditExpense = (float) $user->transactions()
-            ->where('type', 'expense')
-            ->where('is_credit', true)
-            ->whereMonth('transacted_at', $month)
-            ->whereYear('transacted_at', $year)
-            ->sum('amount');
-
-        $cashInHand = $balance + $totalCreditExpense;
-
         $loanCategories = $user->categories()->where('type', 'loan')->get();
 
         $loanPaidTotal = $user->transactions()
@@ -41,7 +32,10 @@ class DashboardController extends Controller
             ->pluck('total', 'category_id');
 
         $totalLoanOutstanding = $loanCategories->sum(function ($cat) use ($loanPaidTotal) {
-            if ($cat->settled_at !== null) return 0;
+            if ($cat->settled_at !== null) {
+                return 0;
+            }
+
             return max(0, (float) $cat->loan_amount - (float) ($loanPaidTotal[$cat->id] ?? 0));
         });
 
@@ -116,8 +110,6 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'balance' => $balance,
-            'cashInHand' => $cashInHand,
-            'totalCreditExpense' => $totalCreditExpense,
             'loanOutstanding' => $totalLoanOutstanding,
             'totalSaved' => $totalSaved,
             'incomeThisMonth' => $incomeThisMonth,

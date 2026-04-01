@@ -6,13 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
-    protected $fillable = ['user_id', 'category_id', 'uuid', 'amount', 'type', 'is_credit', 'title', 'transacted_at'];
+    protected $fillable = ['user_id', 'category_id', 'uuid', 'amount', 'type', 'title', 'transacted_at'];
 
     protected function casts(): array
     {
         return [
             'amount' => 'decimal:2',
-            'is_credit' => 'boolean',
             'transacted_at' => 'date',
         ];
     }

@@ -18,7 +18,6 @@ Rules:
 - `item` = the descriptive text (e.g. "Chicken", "Fish fillets")
 - `amount` = the numeric value (integer or decimal)
 - `date` = date from WhatsApp timestamp if present, otherwise today's date (ISO format `YYYY-MM-DD`)
-- `is_credit` = `true` if the item text starts with `CC:` (case-insensitive), otherwise `false`. Strip the `CC:` prefix before using the text as the title.
 - Skip lines that don't contain a recognisable item + amount pair
 - **Refine the title** — fix typos, expand abbreviations, and improve clarity (e.g. "Vegitables" → "Vegetables", "Mango 2 kg" → "Mango (2 kg)", "Recharge lokkhi moni" → "Recharge - Lokkhi Moni"). Keep it concise and human-readable.
 
@@ -44,11 +43,11 @@ Every item must be mapped to one of the fetched category IDs.
 
 Display a markdown table with a total footer row:
 
-| # | Item | Amount | Category | Date | Credit Card |
-|---|------|--------|----------|------|-------------|
-| 1 | Chicken | 400 | Groceries | 2026-03-20 | No |
-| 2 | Fish | 200 | Groceries | 2026-03-20 | Yes |
-| | **Total** | **600** | | | |
+| # | Item | Amount | Category | Date |
+|---|------|--------|----------|------|
+| 1 | Chicken | 400 | Groceries | 2026-03-20 |
+| 2 | Fish | 200 | Groceries | 2026-03-20 |
+| | **Total** | **600** | | |
 
 Then ask: **"Insert these transactions? (y/n)"**
 
@@ -64,8 +63,8 @@ use App\Models\Transaction;
 use Illuminate\Support\Str;
 
 \$transactions = [
-    ['category_id' => 3, 'amount' => 400, 'title' => 'Chicken', 'transacted_at' => '2026-03-20', 'is_credit' => false],
-    ['category_id' => 3, 'amount' => 200, 'title' => 'Fish', 'transacted_at' => '2026-03-20', 'is_credit' => true],
+    ['category_id' => 3, 'amount' => 400, 'title' => 'Chicken', 'transacted_at' => '2026-03-20'],
+    ['category_id' => 3, 'amount' => 200, 'title' => 'Fish', 'transacted_at' => '2026-03-20'],
 ];
 
 foreach (\$transactions as \$t) {
@@ -77,7 +76,6 @@ foreach (\$transactions as \$t) {
         'amount'        => \$t['amount'],
         'title'         => \$t['title'],
         'transacted_at' => \$t['transacted_at'],
-        'is_credit'     => \$t['is_credit'],
     ]);
 }
 
