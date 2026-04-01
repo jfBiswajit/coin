@@ -74,7 +74,13 @@ useKeyboardShortcuts({
 
             <div class="px-3 py-3 border-t border-white/[0.06]">
                 <div class="flex items-center gap-2 px-2">
-                    <div class="w-7 h-7 rounded-full bg-gradient-to-br from-coin-primary to-coin-accent flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                    <img
+                        v-if="user?.profile_picture"
+                        :src="`/storage/${user.profile_picture}`"
+                        :alt="user.name"
+                        class="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                    />
+                    <div v-else class="w-7 h-7 rounded-full bg-gradient-to-br from-coin-primary to-coin-accent flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
                         {{ user?.name?.[0]?.toUpperCase() ?? 'U' }}
                     </div>
                     <span class="text-xs font-medium text-gray-400 truncate flex-1">{{ user?.name }}</span>
