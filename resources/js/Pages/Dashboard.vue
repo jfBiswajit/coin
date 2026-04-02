@@ -40,11 +40,17 @@ const donutOptions = {
     responsive: true,
     maintainAspectRatio: false,
     cutout: '70%',
+    animation: {
+        animateRotate: true,
+        animateScale: false,
+        duration: 700,
+        easing: 'easeOutQuart' as const,
+    },
     plugins: {
         legend: { display: false },
         tooltip: {
             callbacks: {
-                label: (ctx: any) => ` ${ctx.label}: ৳${Number(ctx.raw).toLocaleString('en', { minimumFractionDigits: 2 })}`,
+                label: (ctx: any) => ` ৳${Number(ctx.raw).toLocaleString('en', { minimumFractionDigits: 2 })}`,
             },
         },
     },
@@ -252,7 +258,7 @@ const formatDate = (dt: string) => {
                     <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">Spending by Category</p>
                     <div v-if="spendingByCategory.length" class="flex gap-6 items-center">
                         <div class="relative shrink-0 w-32 h-32">
-                            <Doughnut :data="donutData" :options="donutOptions" />
+                            <Doughnut v-if="ready" :data="donutData" :options="donutOptions" />
                         </div>
                         <ul class="flex-1 space-y-2 min-w-0">
                             <li v-for="c in spendingByCategory" :key="c.name" class="flex items-center justify-between gap-2 min-w-0">
