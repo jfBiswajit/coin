@@ -60,6 +60,7 @@ useKeyboardShortcuts({
     i: () => setTab('income'),
     s: () => setTab('saving'),
     l: () => setTab('loan'),
+    n: () => { showCreateModal.value = true; },
 });
 
 const tabMeta: Record<Tab, { title: string; subtitle: string }> = {

@@ -47,6 +47,7 @@ useKeyboardShortcuts({
     i: () => { activeTab.value = 'income'; categoryId.value = ''; },
     s: () => { activeTab.value = 'saving'; categoryId.value = ''; },
     l: () => { activeTab.value = 'loan'; categoryId.value = ''; },
+    n: () => openAdd(),
 });
 
 const applyFilters = () => {

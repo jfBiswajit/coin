@@ -81,7 +81,7 @@ class DashboardController extends Controller
             ->with('category')
             ->whereYear('transacted_at', $year)
             ->whereMonth('transacted_at', $month)
-            ->orderByDesc('created_at')
+            ->orderByDesc('transacted_at')->orderByDesc('id')
             ->limit(5)
             ->get()
             ->map(fn ($t) => [
