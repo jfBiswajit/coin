@@ -114,6 +114,17 @@ class TransactionController extends Controller
             'transacted_at' => $data['transacted_at'],
         ]);
 
+        if ($category->type === 'loan' && $category->settled_at === null) {
+            $totalPaid = $request->user()->transactions()
+                ->where('type', 'loan')
+                ->where('category_id', $category->id)
+                ->sum('amount');
+
+            if ($totalPaid >= (float) $category->loan_amount) {
+                $category->update(['settled_at' => now()]);
+            }
+        }
+
         return back()->with('success', 'Transaction added.');
     }
 
@@ -138,13 +149,41 @@ class TransactionController extends Controller
             'transacted_at' => $data['transacted_at'],
         ]);
 
+        if ($category->type === 'loan') {
+            $totalPaid = $request->user()->transactions()
+                ->where('type', 'loan')
+                ->where('category_id', $category->id)
+                ->sum('amount');
+
+            if ($totalPaid >= (float) $category->loan_amount) {
+                if ($category->settled_at === null) {
+                    $category->update(['settled_at' => now()]);
+                }
+            } else {
+                $category->update(['settled_at' => null]);
+            }
+        }
+
         return back();
     }
 
     public function destroy(Request $request, Transaction $transaction)
     {
         abort_if($transaction->user_id !== $request->user()->id, 403);
+
+        $category = $transaction->category;
         $transaction->delete();
+
+        if ($category->type === 'loan') {
+            $totalPaid = $request->user()->transactions()
+                ->where('type', 'loan')
+                ->where('category_id', $category->id)
+                ->sum('amount');
+
+            if ($totalPaid < (float) $category->loan_amount) {
+                $category->update(['settled_at' => null]);
+            }
+        }
 
         return back();
     }
@@ -195,34 +234,12 @@ class TransactionController extends Controller
     {
         $categories = $user->categories()->orderBy('type')->orderBy('name')->get();
 
-        $loanPaid = $user->transactions()
-            ->where('type', 'loan')
-            ->selectRaw('category_id, SUM(amount) as total')
-            ->groupBy('category_id')
-            ->pluck('total', 'category_id');
-
-        $savingTotals = $user->transactions()
-            ->where('type', 'saving')
-            ->selectRaw('category_id, SUM(amount) as total')
-            ->groupBy('category_id')
-            ->pluck('total', 'category_id');
-
-        return $categories->filter(function ($cat) use ($loanPaid, $savingTotals) {
+        return $categories->filter(function ($cat) {
             if ($cat->type === 'loan') {
-                if ($cat->settled_at !== null) {
-                    return false;
-                }
-                $remaining = (float) $cat->loan_amount - (float) ($loanPaid[$cat->id] ?? 0);
-
-                return $remaining > 0;
+                return $cat->settled_at === null;
             }
             if ($cat->type === 'saving') {
-                if ($cat->withdrawn_at !== null) {
-                    return false;
-                }
-                if ($cat->target_amount !== null && (float) $cat->target_amount > 0) {
-                    return (float) ($savingTotals[$cat->id] ?? 0) < (float) $cat->target_amount;
-                }
+                return $cat->withdrawn_at === null;
             }
 
             return true;

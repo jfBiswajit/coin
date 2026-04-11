@@ -101,14 +101,13 @@ const totalLoanAmount = computed(() => activeLoansForTotal.value.reduce((s, l) =
 const totalLoanPaid = computed(() => activeLoansForTotal.value.reduce((s, l) => s + l.total_paid, 0));
 const totalLoanRemaining = computed(() => activeLoansForTotal.value.reduce((s, l) => s + l.remaining, 0));
 
-const isGoalMet = (item: SavingItem) => !!item.target_amount && item.total_saved >= item.target_amount;
-const isCompleted = (item: SavingItem) => item.is_withdrawn || isGoalMet(item);
+const isCompleted = (item: SavingItem) => item.is_withdrawn;
 const totalSavedAllTime = computed(() => props.savings.reduce((s, sv) => s + sv.total_saved, 0));
 const totalSavingTarget = computed(() => props.savings.reduce((s, sv) => s + (sv.target_amount ?? 0), 0));
 
 const showCompletedLoans = ref(false);
-const activeLoans = computed(() => props.loans.filter(l => l.remaining > 0 && !l.is_settled));
-const completedLoans = computed(() => props.loans.filter(l => l.remaining === 0 || l.is_settled));
+const activeLoans = computed(() => props.loans.filter(l => !l.is_settled));
+const completedLoans = computed(() => props.loans.filter(l => l.is_settled));
 const visibleLoans = computed(() => showCompletedLoans.value ? props.loans : activeLoans.value);
 
 const showCompletedSavings = ref(false);
@@ -505,7 +504,7 @@ const openEditFromBudget = (item: ExpenseItem | IncomeItem | LoanItem | SavingIt
                             <div class="flex-1 min-w-0">
                                 <span class="font-semibold text-sm text-gray-800 dark:text-white">{{ item.name }}</span>
                             </div>
-                            <span class="text-sm font-bold shrink-0" :class="!item.target_amount || isCompleted(item) ? 'text-emerald-500' : 'text-blue-500'">{{ fmt(item.total_saved) }}</span>
+                            <span class="text-sm font-bold shrink-0" :class="!item.target_amount || item.is_withdrawn ? 'text-emerald-500' : 'text-blue-500'">{{ fmt(item.total_saved) }}</span>
                             <div class="relative shrink-0">
                                 <button
                                     class="p-1 rounded-lg hover:bg-white/10 transition-colors text-gray-400 dark:text-gray-500"
@@ -543,7 +542,7 @@ const openEditFromBudget = (item: ExpenseItem | IncomeItem | LoanItem | SavingIt
                                 <span v-if="item.is_withdrawn" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400">
                                     Withdrawn
                                 </span>
-                                <span v-else-if="isGoalMet(item)" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                                <span v-else-if="item.target_amount && item.total_saved >= item.target_amount" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
                                     Goal Achieved
                                 </span>
                                 <span v-else class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
