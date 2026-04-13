@@ -108,9 +108,9 @@ const spentPct = computed(() =>
 );
 
 const budgetPct = computed(() =>
-    props.totalBudget > 0
-        ? Math.min(100, (props.expenseThisMonth / props.totalBudget) * 100)
-        : props.expenseThisMonth > 0 ? 100 : 0
+    props.moneyNeeded > 0
+        ? Math.min(100, (props.spentThisMonth / props.moneyNeeded) * 100)
+        : props.spentThisMonth > 0 ? 100 : 0
 );
 
 const incomePct = computed(() =>
@@ -190,22 +190,22 @@ const formatDate = (dt: string) => {
                             <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Spent</p>
                             <p class="text-xl font-bold mt-0.5"
                                 :class="budgetPct >= 100 ? 'text-red-500' : budgetPct >= 80 ? 'text-amber-400' : 'text-gray-900 dark:text-white'">
-                                {{ fmt(expenseThisMonth) }}
+                                {{ fmt(spentThisMonth) }}
                             </p>
-                            <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">of {{ fmt(totalBudget) }} budget</p>
+                            <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">of {{ fmt(moneyNeeded) }} needed</p>
                         </div>
                     </div>
 
                     <!-- Budget vs Expense bar -->
-                    <div v-if="totalBudget > 0" class="mt-4 space-y-1.5">
+                    <div v-if="moneyNeeded > 0" class="mt-4 space-y-1.5">
                         <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
                             <div class="h-full rounded-full transition-all duration-700 ease-out"
                                 :class="budgetPct >= 100 ? 'bg-red-500' : budgetPct >= 80 ? 'bg-amber-400' : 'bg-violet-500'"
                                 :style="{ width: ready ? `${budgetPct}%` : '0%' }" />
                         </div>
                         <div class="flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500">
-                            <span>{{ Math.round(budgetPct) }}% of budget used</span>
-                            <span>{{ fmt(totalBudget - expenseThisMonth) }} remaining</span>
+                            <span>{{ Math.round(budgetPct) }}% of needed spent</span>
+                            <span>{{ fmt(moneyNeeded - spentThisMonth) }} remaining</span>
                         </div>
                     </div>
                 </div>
@@ -215,7 +215,7 @@ const formatDate = (dt: string) => {
 
                 <Link href="/budget" class="card !p-5 !bg-white/[0.07] !backdrop-blur-2xl !border-white/[0.14] !shadow-lg border-l-[3px] border-l-violet-500 block hover:opacity-80 transition-opacity">
                     <div class="flex items-center justify-between mb-1">
-                        <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1.5"><Wallet class="w-3.5 h-3.5" />Money Needed</p>
+                        <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1.5"><Wallet class="w-3.5 h-3.5" />Monthly Budget</p>
                         <span class="text-[9px] font-medium text-gray-300 dark:text-gray-600 uppercase tracking-wider">{{ monthLabel }}</span>
                     </div>
                     <p class="text-2xl font-black tracking-tight text-violet-500">{{ fmt(moneyNeeded) }}</p>
@@ -227,7 +227,7 @@ const formatDate = (dt: string) => {
 
                 <Link href="/budget?tab=saving" class="card !p-5 !bg-white/[0.07] !backdrop-blur-2xl !border-white/[0.14] !shadow-lg border-l-[3px] border-l-blue-500 block hover:opacity-80 transition-opacity">
                     <div class="flex items-center justify-between mb-1">
-                        <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1.5"><PiggyBank class="w-3.5 h-3.5" />Total Saved</p>
+                        <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1.5"><PiggyBank class="w-3.5 h-3.5" />Savings Balance</p>
                         <span class="text-[9px] font-medium text-gray-300 dark:text-gray-600 uppercase tracking-wider">All time</span>
                     </div>
                     <p class="text-2xl font-black tracking-tight text-blue-500">{{ fmt(totalSaved) }}</p>

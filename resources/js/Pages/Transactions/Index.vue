@@ -55,6 +55,7 @@ const applyFilters = () => {
         month: props.filters.month,
         year: props.filters.year,
         type: activeTab.value,
+        ...(props.filters.date ? { date: props.filters.date } : {}),
         ...(categoryId.value ? { category_id: categoryId.value } : {}),
         ...(searchQuery.value ? { search: searchQuery.value } : {}),
     }, { preserveScroll: true, preserveState: true, replace: true });
@@ -151,9 +152,9 @@ const amountPrefix = (type: TxType) => type === 'income' ? '+' : '-';
 
 const tabConfig: Record<TxType, { label: string; title: string; subtitle: string }> = {
     expense: { label: 'Expense', title: 'Expenses', subtitle: 'Your spending records' },
-    income: { label: 'Income', title: 'Income', subtitle: 'Your earnings this month' },
-    saving: { label: 'Saving', title: 'Savings', subtitle: 'Your saving records' },
     loan: { label: 'Loan', title: 'Loans', subtitle: 'Your loan records' },
+    saving: { label: 'Saving', title: 'Savings', subtitle: 'Your saving records' },
+    income: { label: 'Income', title: 'Income', subtitle: 'Your earnings this month' },
 };
 
 const pageHeader = computed(() => tabConfig[activeTab.value]);

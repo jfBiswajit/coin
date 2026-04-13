@@ -205,15 +205,15 @@ const openEditFromBudget = (item: ExpenseItem | IncomeItem | LoanItem | SavingIt
                 </button>
                 <button
                     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
-                    :class="activeSection === 'income'
+                    :class="activeSection === 'loan'
                         ? 'bg-white dark:bg-coin-dark-card text-gray-900 dark:text-white shadow-sm'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
-                    @click="setTab('income')"
+                    @click="setTab('loan')"
                 >
-                    Income
+                    Loan
                     <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
-                        :class="activeSection === 'income' ? 'bg-coin-primary/10 text-coin-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'"
-                    >{{ incomes.length }}</span>
+                        :class="activeSection === 'loan' ? 'bg-coin-primary/10 text-coin-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'"
+                    >{{ loans.length }}</span>
                 </button>
                 <button
                     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
@@ -229,15 +229,15 @@ const openEditFromBudget = (item: ExpenseItem | IncomeItem | LoanItem | SavingIt
                 </button>
                 <button
                     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
-                    :class="activeSection === 'loan'
+                    :class="activeSection === 'income'
                         ? 'bg-white dark:bg-coin-dark-card text-gray-900 dark:text-white shadow-sm'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
-                    @click="setTab('loan')"
+                    @click="setTab('income')"
                 >
-                    Loan
+                    Income
                     <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
-                        :class="activeSection === 'loan' ? 'bg-coin-primary/10 text-coin-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'"
-                    >{{ loans.length }}</span>
+                        :class="activeSection === 'income' ? 'bg-coin-primary/10 text-coin-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400'"
+                    >{{ incomes.length }}</span>
                 </button>
             </div>
 

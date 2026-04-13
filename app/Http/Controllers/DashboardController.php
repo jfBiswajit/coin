@@ -64,7 +64,7 @@ class DashboardController extends Controller
         $moneyNeeded = $totalBudget + $totalEMI + $totalSavingTarget;
 
         $dailyExpenseMap = $user->transactions()
-            ->where('type', 'expense')
+            ->whereIn('type', ['expense', 'loan', 'saving'])
             ->whereYear('transacted_at', $year)
             ->whereMonth('transacted_at', $month)
             ->selectRaw('DAY(transacted_at) as day, SUM(amount) as total')
