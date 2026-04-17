@@ -2,7 +2,6 @@
 name: expenses
 description: Parse expenses from WhatsApp messages, plain text, or invoice/receipt images and create transactions. Use when the user provides expense lines or attaches an invoice photo.
 argument-hint: "<WhatsApp messages, plain text lines, or invoice image path>"
-disable-model-invocation: true
 ---
 
 Parse expenses from `$ARGUMENTS` (or an image attached to the conversation) and create transactions.
