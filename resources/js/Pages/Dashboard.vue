@@ -2,7 +2,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ArcElement, BarElement, CategoryScale, Chart as ChartJS, LinearScale, Tooltip, Legend } from 'chart.js';
-import { ArrowRight, Landmark, PiggyBank, Wallet } from 'lucide-vue-next';
+import { ArrowRight, Landmark, PiggyBank, TrendingDown, Wallet } from 'lucide-vue-next';
 import { onMounted, ref, computed } from 'vue';
 import { Bar, Doughnut } from 'vue-chartjs';
 
@@ -24,6 +24,7 @@ const props = defineProps<{
     totalBudget: number;
     totalIncomeBudget: number;
     expenseThisMonth: number;
+    totalOutflowThisMonth: number;
 }>();
 
 const donutData = computed(() => ({
@@ -108,8 +109,8 @@ const spentPct = computed(() =>
 );
 
 const budgetPct = computed(() =>
-    props.moneyNeeded > 0
-        ? Math.min(100, (props.spentThisMonth / props.moneyNeeded) * 100)
+    props.totalBudget > 0
+        ? Math.min(100, (props.spentThisMonth / props.totalBudget) * 100)
         : props.spentThisMonth > 0 ? 100 : 0
 );
 
@@ -174,12 +175,22 @@ const formatDate = (dt: string) => {
 
                         <!-- Income this month -->
                         <div class="shrink-0 text-right">
-                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Income this month</p>
+                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Monthly income</p>
                             <p class="text-xl font-bold mt-0.5"
                                 :class="totalIncomeBudget === 0 || incomePct >= 100 ? 'text-emerald-500' : 'text-amber-400'">
                                 {{ fmt(incomeThisMonth) }}
                             </p>
-                            <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{{ monthLabel }}</p>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="w-px self-stretch bg-gray-100 dark:bg-white/10 shrink-0"></div>
+
+                        <!-- Total expenses -->
+                        <div class="shrink-0 text-right">
+                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Total expenses</p>
+                            <p class="text-xl font-bold mt-0.5 text-orange-500">
+                                {{ fmt(totalOutflowThisMonth) }}
+                            </p>
                         </div>
 
                         <!-- Divider -->
@@ -192,12 +203,11 @@ const formatDate = (dt: string) => {
                                 :class="budgetPct >= 100 ? 'text-red-500' : budgetPct >= 80 ? 'text-amber-400' : 'text-gray-900 dark:text-white'">
                                 {{ fmt(spentThisMonth) }}
                             </p>
-                            <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">of {{ fmt(moneyNeeded) }} needed</p>
                         </div>
                     </div>
 
                     <!-- Budget vs Expense bar -->
-                    <div v-if="moneyNeeded > 0" class="mt-4 space-y-1.5">
+                    <div v-if="totalBudget > 0" class="mt-4 space-y-1.5">
                         <div class="h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
                             <div class="h-full rounded-full transition-all duration-700 ease-out"
                                 :class="budgetPct >= 100 ? 'bg-red-500' : budgetPct >= 80 ? 'bg-amber-400' : 'bg-violet-500'"
@@ -205,7 +215,9 @@ const formatDate = (dt: string) => {
                         </div>
                         <div class="flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500">
                             <span>{{ Math.round(budgetPct) }}% of needed spent</span>
-                            <span>{{ fmt(moneyNeeded - spentThisMonth) }} remaining</span>
+                            <span :class="spentThisMonth > totalBudget ? 'text-red-500' : ''">
+                                {{ spentThisMonth > totalBudget ? fmt(spentThisMonth - totalBudget) + ' over budget' : fmt(totalBudget - spentThisMonth) + ' remaining' }}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -248,6 +260,7 @@ const formatDate = (dt: string) => {
                         <template v-else>No loans</template>
                     </p>
                 </Link>
+
             </div>
 
 

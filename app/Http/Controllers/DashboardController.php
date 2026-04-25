@@ -49,9 +49,7 @@ class DashboardController extends Controller
             ->pluck('total', 'type');
 
         $incomeThisMonth = (float) ($thisMonth['income'] ?? 0);
-        $spentThisMonth = (float) ($thisMonth['expense'] ?? 0)
-                        + (float) ($thisMonth['loan'] ?? 0)
-                        + (float) ($thisMonth['saving'] ?? 0);
+        $spentThisMonth = (float) ($thisMonth['expense'] ?? 0);
 
         $totalBudget = (float) $user->categories()->where('type', 'expense')->sum('monthly_budget');
         $totalIncomeBudget = (float) $user->categories()->where('type', 'income')->sum('monthly_amount');
@@ -64,7 +62,7 @@ class DashboardController extends Controller
         $moneyNeeded = $totalBudget + $totalEMI + $totalSavingTarget;
 
         $dailyExpenseMap = $user->transactions()
-            ->whereIn('type', ['expense', 'loan', 'saving'])
+            ->where('type', 'expense')
             ->whereYear('transacted_at', $year)
             ->whereMonth('transacted_at', $month)
             ->selectRaw('DAY(transacted_at) as day, SUM(amount) as total')
@@ -111,6 +109,10 @@ class DashboardController extends Controller
 
         $expenseThisMonth = (float) ($thisMonth['expense'] ?? 0);
 
+        $totalOutflowThisMonth = (float) ($thisMonth['expense'] ?? 0)
+                               + (float) ($thisMonth['loan'] ?? 0)
+                               + (float) ($thisMonth['saving'] ?? 0);
+
         return Inertia::render('Dashboard', [
             'balance' => $balance,
             'loanOutstanding' => $totalLoanOutstanding,
@@ -118,6 +120,7 @@ class DashboardController extends Controller
             'incomeThisMonth' => $incomeThisMonth,
             'spentThisMonth' => $spentThisMonth,
             'expenseThisMonth' => $expenseThisMonth,
+            'totalOutflowThisMonth' => $totalOutflowThisMonth,
             'moneyNeeded' => $moneyNeeded,
             'totalBudget' => $totalBudget,
             'totalIncomeBudget' => $totalIncomeBudget,
