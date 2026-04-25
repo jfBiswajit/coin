@@ -175,9 +175,9 @@ const formatDate = (dt: string) => {
 
                         <!-- Income this month -->
                         <div class="shrink-0 text-right">
-                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Monthly income</p>
+                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Income</p>
                             <p class="text-xl font-bold mt-0.5"
-                                :class="totalIncomeBudget === 0 || incomePct >= 100 ? 'text-emerald-500' : 'text-amber-400'">
+                                :class="totalIncomeBudget === 0 || incomePct >= 100 ? 'text-emerald-500' : 'text-orange-500'">
                                 {{ fmt(incomeThisMonth) }}
                             </p>
                         </div>
@@ -187,8 +187,8 @@ const formatDate = (dt: string) => {
 
                         <!-- Total expenses -->
                         <div class="shrink-0 text-right">
-                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Total expenses</p>
-                            <p class="text-xl font-bold mt-0.5 text-orange-500">
+                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Total spent</p>
+                            <p class="text-xl font-bold mt-0.5 text-pink-500">
                                 {{ fmt(totalOutflowThisMonth) }}
                             </p>
                         </div>
@@ -198,9 +198,9 @@ const formatDate = (dt: string) => {
 
                         <!-- Spent this month -->
                         <div class="shrink-0 text-right">
-                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Spent on budgets</p>
+                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Budget spent</p>
                             <p class="text-xl font-bold mt-0.5"
-                                :class="budgetPct >= 100 ? 'text-red-500' : budgetPct >= 80 ? 'text-amber-400' : 'text-gray-900 dark:text-white'">
+                                :class="budgetPct >= 100 ? 'text-red-500' : budgetPct >= 80 ? 'text-orange-500' : 'text-emerald-500'">
                                 {{ fmt(spentThisMonth) }}
                             </p>
                         </div>
