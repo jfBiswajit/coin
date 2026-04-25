@@ -174,7 +174,7 @@ const formatDate = (dt: string) => {
 
                         <!-- Income this month -->
                         <div class="shrink-0 text-right">
-                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Income</p>
+                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Income this month</p>
                             <p class="text-xl font-bold mt-0.5"
                                 :class="totalIncomeBudget === 0 || incomePct >= 100 ? 'text-emerald-500' : 'text-amber-400'">
                                 {{ fmt(incomeThisMonth) }}
@@ -187,7 +187,7 @@ const formatDate = (dt: string) => {
 
                         <!-- Spent this month -->
                         <div class="shrink-0 text-right">
-                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Spent</p>
+                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Spent on budgets</p>
                             <p class="text-xl font-bold mt-0.5"
                                 :class="budgetPct >= 100 ? 'text-red-500' : budgetPct >= 80 ? 'text-amber-400' : 'text-gray-900 dark:text-white'">
                                 {{ fmt(spentThisMonth) }}
