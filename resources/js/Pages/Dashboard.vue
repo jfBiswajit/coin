@@ -24,7 +24,6 @@ const props = defineProps<{
     totalBudget: number;
     totalIncomeBudget: number;
     expenseThisMonth: number;
-    totalOutflowThisMonth: number;
 }>();
 
 const donutData = computed(() => ({
@@ -179,17 +178,6 @@ const formatDate = (dt: string) => {
                             <p class="text-xl font-bold mt-0.5"
                                 :class="totalIncomeBudget === 0 || incomePct >= 100 ? 'text-emerald-500' : 'text-orange-500'">
                                 {{ fmt(incomeThisMonth) }}
-                            </p>
-                        </div>
-
-                        <!-- Divider -->
-                        <div class="w-px self-stretch bg-gray-100 dark:bg-white/10 shrink-0"></div>
-
-                        <!-- Total expenses -->
-                        <div class="shrink-0 text-right">
-                            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Total spent</p>
-                            <p class="text-xl font-bold mt-0.5 text-pink-500">
-                                {{ fmt(totalOutflowThisMonth) }}
                             </p>
                         </div>
 

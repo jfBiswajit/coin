@@ -109,10 +109,6 @@ class DashboardController extends Controller
 
         $expenseThisMonth = (float) ($thisMonth['expense'] ?? 0);
 
-        $totalOutflowThisMonth = (float) ($thisMonth['expense'] ?? 0)
-                               + (float) ($thisMonth['loan'] ?? 0)
-                               + (float) ($thisMonth['saving'] ?? 0);
-
         return Inertia::render('Dashboard', [
             'balance' => $balance,
             'loanOutstanding' => $totalLoanOutstanding,
@@ -120,7 +116,6 @@ class DashboardController extends Controller
             'incomeThisMonth' => $incomeThisMonth,
             'spentThisMonth' => $spentThisMonth,
             'expenseThisMonth' => $expenseThisMonth,
-            'totalOutflowThisMonth' => $totalOutflowThisMonth,
             'moneyNeeded' => $moneyNeeded,
             'totalBudget' => $totalBudget,
             'totalIncomeBudget' => $totalIncomeBudget,
