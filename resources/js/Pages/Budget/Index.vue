@@ -4,7 +4,7 @@ import CategoryEditModal, { type CategoryForEdit } from '@/Components/CategoryEd
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts';
-import { MoreVertical, Plus } from 'lucide-vue-next';
+import { CheckCircle, MoreVertical, Plus } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
 type ExpenseItem = {
@@ -102,8 +102,8 @@ const totalLoanPaid = computed(() => activeLoansForTotal.value.reduce((s, l) => 
 const totalLoanRemaining = computed(() => activeLoansForTotal.value.reduce((s, l) => s + l.remaining, 0));
 
 const isCompleted = (item: SavingItem) => item.is_withdrawn;
-const totalSavedAllTime = computed(() => props.savings.reduce((s, sv) => s + sv.total_saved, 0));
-const totalSavingTarget = computed(() => props.savings.reduce((s, sv) => s + (sv.target_amount ?? 0), 0));
+const totalSavedAllTime = computed(() => props.savings.filter(sv => !sv.is_withdrawn).reduce((s, sv) => s + sv.total_saved, 0));
+const totalSavingTarget = computed(() => props.savings.filter(sv => !sv.is_withdrawn).reduce((s, sv) => s + (sv.target_amount ?? 0), 0));
 
 const showCompletedLoans = ref(false);
 const activeLoans = computed(() => props.loans.filter(l => !l.is_settled));
@@ -360,6 +360,14 @@ const openEditFromBudget = (item: ExpenseItem | IncomeItem | LoanItem | SavingIt
                 </div>
 
                 <template v-if="loans.length">
+                <div v-if="completedLoans.length" class="flex items-center justify-end">
+                    <button type="button" role="switch" :aria-checked="showCompletedLoans" @click="showCompletedLoans = !showCompletedLoans"
+                        class="relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                        :class="showCompletedLoans ? 'bg-violet-500' : 'bg-gray-200 dark:bg-white/10'">
+                        <span class="pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out"
+                            :class="showCompletedLoans ? 'translate-x-4' : 'translate-x-0'" />
+                    </button>
+                </div>
                 <div v-if="visibleLoans.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div
                         v-for="item in visibleLoans"
@@ -379,23 +387,26 @@ const openEditFromBudget = (item: ExpenseItem | IncomeItem | LoanItem | SavingIt
                             </div>
                             <span class="text-sm font-bold shrink-0" :class="item.remaining === 0 || item.is_settled ? 'text-emerald-500' : 'text-orange-500'">{{ fmt(item.remaining) }}</span>
                             <div class="relative shrink-0">
-                                <button
-                                    class="p-1 rounded-lg hover:bg-white/10 transition-colors text-gray-400 dark:text-gray-500"
-                                    @click.stop="toggleMenu(item.category_id, $event)"
-                                >
-                                    <MoreVertical class="w-4 h-4" />
-                                </button>
-                                <div v-if="openMenu === item.category_id" class="absolute right-0 top-7 z-20 bg-white dark:bg-coin-dark-card border border-gray-100 dark:border-white/10 rounded-xl shadow-lg py-1 min-w-[120px]">
+                                <CheckCircle v-if="item.is_settled" class="w-5 h-5 text-emerald-500" />
+                                <template v-else>
                                     <button
-                                        class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-                                        @click.stop="openEditFromBudget(item, 'loan'); openMenu = null"
-                                    >Edit</button>
-                                    <button
-                                        v-if="item.remaining > 0 && !item.is_settled"
-                                        class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-                                        @click.stop="settleConfirm = item; openMenu = null"
-                                    >Settle</button>
-                                </div>
+                                        class="p-1 rounded-lg hover:bg-white/10 transition-colors text-gray-400 dark:text-gray-500"
+                                        @click.stop="toggleMenu(item.category_id, $event)"
+                                    >
+                                        <MoreVertical class="w-4 h-4" />
+                                    </button>
+                                    <div v-if="openMenu === item.category_id" class="absolute right-0 top-7 z-20 bg-white dark:bg-coin-dark-card border border-gray-100 dark:border-white/10 rounded-xl shadow-lg py-1 min-w-[120px]">
+                                        <button
+                                            class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                            @click.stop="openEditFromBudget(item, 'loan'); openMenu = null"
+                                        >Edit</button>
+                                        <button
+                                            v-if="item.remaining > 0"
+                                            class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                            @click.stop="settleConfirm = item; openMenu = null"
+                                        >Settle</button>
+                                    </div>
+                                </template>
                             </div>
                         </div>
 
@@ -446,13 +457,6 @@ const openEditFromBudget = (item: ExpenseItem | IncomeItem | LoanItem | SavingIt
                 <div v-else class="card text-center py-8 text-sm text-gray-400 dark:text-gray-600">
                     All loans paid off.
                 </div>
-                <button
-                    v-if="completedLoans.length"
-                    class="w-full text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors py-2"
-                    @click="showCompletedLoans = !showCompletedLoans"
-                >
-                    {{ showCompletedLoans ? 'Hide completed' : `Show completed (${completedLoans.length})` }}
-                </button>
                 </template>
                 <div v-else class="card text-center py-12 text-sm text-gray-400 dark:text-gray-600">
                     Add loan categories to track repayments.
@@ -487,6 +491,14 @@ const openEditFromBudget = (item: ExpenseItem | IncomeItem | LoanItem | SavingIt
                 </div>
 
                 <template v-if="savings.length">
+                <div v-if="completedSavings.length" class="flex items-center justify-end">
+                    <button type="button" role="switch" :aria-checked="showCompletedSavings" @click="showCompletedSavings = !showCompletedSavings"
+                        class="relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                        :class="showCompletedSavings ? 'bg-violet-500' : 'bg-gray-200 dark:bg-white/10'">
+                        <span class="pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out"
+                            :class="showCompletedSavings ? 'translate-x-4' : 'translate-x-0'" />
+                    </button>
+                </div>
                 <div v-if="visibleSavings.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div
                         v-for="item in visibleSavings"
@@ -506,23 +518,26 @@ const openEditFromBudget = (item: ExpenseItem | IncomeItem | LoanItem | SavingIt
                             </div>
                             <span class="text-sm font-bold shrink-0" :class="!item.target_amount || item.is_withdrawn ? 'text-emerald-500' : 'text-blue-500'">{{ fmt(item.total_saved) }}</span>
                             <div class="relative shrink-0">
-                                <button
-                                    class="p-1 rounded-lg hover:bg-white/10 transition-colors text-gray-400 dark:text-gray-500"
-                                    @click.stop="toggleMenu(item.category_id, $event)"
-                                >
-                                    <MoreVertical class="w-4 h-4" />
-                                </button>
-                                <div v-if="openMenu === item.category_id" class="absolute right-0 top-7 z-20 bg-white dark:bg-coin-dark-card border border-gray-100 dark:border-white/10 rounded-xl shadow-lg py-1 min-w-[120px]">
+                                <CheckCircle v-if="item.is_withdrawn" class="w-5 h-5 text-emerald-500" />
+                                <template v-else>
                                     <button
-                                        class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-                                        @click.stop="openEditFromBudget(item, 'saving'); openMenu = null"
-                                    >Edit</button>
-                                    <button
-                                        v-if="item.total_saved > 0 && !item.is_withdrawn"
-                                        class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-                                        @click.stop="openWithdraw(item, $event); openMenu = null"
-                                    >Withdraw</button>
-                                </div>
+                                        class="p-1 rounded-lg hover:bg-white/10 transition-colors text-gray-400 dark:text-gray-500"
+                                        @click.stop="toggleMenu(item.category_id, $event)"
+                                    >
+                                        <MoreVertical class="w-4 h-4" />
+                                    </button>
+                                    <div v-if="openMenu === item.category_id" class="absolute right-0 top-7 z-20 bg-white dark:bg-coin-dark-card border border-gray-100 dark:border-white/10 rounded-xl shadow-lg py-1 min-w-[120px]">
+                                        <button
+                                            class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                            @click.stop="openEditFromBudget(item, 'saving'); openMenu = null"
+                                        >Edit</button>
+                                        <button
+                                            v-if="item.total_saved > 0"
+                                            class="w-full text-left px-3 py-2 text-sm text-violet-600 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                            @click.stop="openWithdraw(item, $event); openMenu = null"
+                                        >Withdraw</button>
+                                    </div>
+                                </template>
                             </div>
                         </div>
 
@@ -578,13 +593,6 @@ const openEditFromBudget = (item: ExpenseItem | IncomeItem | LoanItem | SavingIt
                 <div v-else class="card text-center py-8 text-sm text-gray-400 dark:text-gray-600">
                     All saving goals achieved.
                 </div>
-                <button
-                    v-if="completedSavings.length"
-                    class="w-full text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors py-2"
-                    @click="showCompletedSavings = !showCompletedSavings"
-                >
-                    {{ showCompletedSavings ? 'Hide completed' : `Show completed (${completedSavings.length})` }}
-                </button>
                 </template>
                 <div v-else class="card text-center py-12 text-sm text-gray-400 dark:text-gray-600">
                     Add saving categories to track your goals.

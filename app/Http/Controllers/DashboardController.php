@@ -39,7 +39,10 @@ class DashboardController extends Controller
             return max(0, (float) $cat->loan_amount - (float) ($loanPaidTotal[$cat->id] ?? 0));
         });
 
-        $totalSaved = (float) ($allTime['saving'] ?? 0);
+        $totalSaved = (float) $user->transactions()
+            ->where('type', 'saving')
+            ->whereHas('category', fn ($q) => $q->whereNull('withdrawn_at'))
+            ->sum('amount');
 
         $thisMonth = $user->transactions()
             ->whereYear('transacted_at', $year)
