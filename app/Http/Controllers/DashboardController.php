@@ -60,7 +60,7 @@ class DashboardController extends Controller
         $totalEMI = (float) $loanCategories->sum('emi_amount');
 
         $savingCategories = $user->categories()->where('type', 'saving')->get();
-        $totalSavingTarget = (float) $savingCategories->sum('monthly_amount');
+        $totalSavingTarget = (float) $savingCategories->whereNotNull('target_amount')->sum('monthly_amount');
 
         $moneyNeeded = $totalBudget + $totalEMI + $totalSavingTarget;
 
